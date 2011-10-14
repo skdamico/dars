@@ -71,10 +71,29 @@ import ply.lex as lex
          # | <any character whose category is Zs>
 
 tokens = (
-	"LETTER",
+    "LETTER",
 	"DIGIT",
-
+    "SPECIAL_SUBSEQUENT",
+    "SPECIAL_INITIAL",
+    "BOOLEAN",
+    "UNICODE"
 )
+
+def t_UNICODE(t):
+    r'[\u007F-\u00FF]'
+    return t
+
+def t_BOOLEAN(t):
+    r'\#t|\#T|\#f|\#F'
+    return t
+
+def t_SPECIAL_INITIAL(t):
+    r'[!$%&*/:<=>?^_~]'
+    return t
+
+def t_SPECIAL_SUBSEQUENT(t):
+    r'[+-.@]'
+    return t
 
 def t_LETTER(t):
 	r'[a-zA-Z]'
@@ -84,7 +103,7 @@ def t_DIGIT(t):
 	r'[0-9]'
 	return t
 
-t_ignore = "\t \n"
+t_ignore = "\t\n "
 
 def t_error(t):
     print "Illegal character '%s'" % t.value[0]
@@ -94,7 +113,7 @@ lexer = lex.lex()
 
 # Test it out
 data = '''
-A b 2  5  h A1 # 6
+A b 2  5  h+ A1 .6 @ - ?@/:^$%<>=_~#t#y \u0080
 '''
 
 # Give the lexer some input
