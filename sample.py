@@ -76,34 +76,40 @@ tokens = (
     "SPECIAL_SUBSEQUENT",
     "SPECIAL_INITIAL",
     "BOOLEAN",
-    "UNICODE"
+    "UNICODE_CONSTITUENT",
+    "CHARACTER_NAME"
 )
 
-def t_UNICODE(t):
-    r'[\u007F-\u00FF]'
+
+def t_CHARACTER_NAME(t):
+    ur'nul | alarm | backspace | tab | linefeed | newline | vtab | page | return | esc | space | delete'
+    return t
+
+def t_UNICODE_CONSTITUENT(t):
+    ur'[\u0080-\uFFFF]'
     return t
 
 def t_BOOLEAN(t):
-    r'\#t|\#T|\#f|\#F'
+    ur'\#t|\#T|\#f|\#F'
     return t
 
 def t_SPECIAL_INITIAL(t):
-    r'[!$%&*/:<=>?^_~]'
+    ur'[!$%&*/:<=>?^_~]'
     return t
 
 def t_SPECIAL_SUBSEQUENT(t):
-    r'[+-.@]'
+    ur'[+-.@]'
     return t
 
 def t_LETTER(t):
-	r'[a-zA-Z]'
+	ur'[a-zA-Z]'
 	return t
 	
 def t_DIGIT(t):
-	r'[0-9]'
+	ur'[0-9]'
 	return t
 
-t_ignore = "\t\n "
+t_ignore = u'\t\n '
 
 def t_error(t):
     print "Illegal character '%s'" % t.value[0]
@@ -112,8 +118,8 @@ def t_error(t):
 lexer = lex.lex()
 
 # Test it out
-data = '''
-A b 2  5  h+ A1 .6 @ - ?@/:^$%<>=_~#t#y \u0080
+data = u'''
+A b 2  5  h+ A1 .6 @ - ?@/:^$%<>=_~#t#y \u0081  nulalarm
 '''
 
 # Give the lexer some input
