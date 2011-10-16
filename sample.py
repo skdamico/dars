@@ -1,5 +1,5 @@
 import ply.lex as lex
-
+import ply.yacc as yacc
 # <input>  ::=  "Signatures:" <signatures> "Equations:" <equations>
 
 # <signatures>  ::=  <signature>
@@ -72,14 +72,18 @@ import ply.lex as lex
 
 tokens = (
     "LETTER",
-	"DIGIT",
+    "DIGIT",
     "SPECIAL_SUBSEQUENT",
     "SPECIAL_INITIAL",
     "BOOLEAN",
     "UNICODE_CONSTITUENT",
-    "CHARACTER_NAME"
+    "CHARACTER_NAME",
+    "STRING"
 )
 
+def t_STRING(t):
+    ur'[\a\b\t\n\v\f\r\"\\]'
+    return t
 
 def t_CHARACTER_NAME(t):
     ur'nul | alarm | backspace | tab | linefeed | newline | vtab | page | return | esc | space | delete'
@@ -102,19 +106,19 @@ def t_SPECIAL_SUBSEQUENT(t):
     return t
 
 def t_LETTER(t):
-	ur'[a-zA-Z]'
-	return t
-	
+    ur'[a-zA-Z]'
+    return t
+    
 def t_DIGIT(t):
-	ur'[0-9]'
-	return t
+    ur'[0-9]'
+    return t
 
 t_ignore = u'\t\n '
 
 def t_error(t):
     print "Illegal character '%s'" % t.value[0]
     t.lexer.skip(1)
-	
+
 lexer = lex.lex()
 
 # Test it out
@@ -130,3 +134,32 @@ while True:
     tok = lexer.token()
     if not tok: break      # No more input
     print tok
+
+def p_hex_digit(p):
+    '''hex_digit : DIGIT
+                 | LETTER'''
+    if p[1] == ur'[a-fA-F]' : 
+        p[0] = p[1]
+        print "suck it"
+    elif p[1] == ur'[0-9]' :
+        p[0] = p[1]
+        print "digit"
+
+def p_hex_digit_plus(p):
+    '''hex_digit_plus : hex_digit
+                      | hex_digit hex_digit_plus'''
+    if len(p) == 1 : 
+        p[0] = p[1]
+    elif len(p) > 1: 
+        p[0] = p[1].append(p[2])
+
+def p_hex_scalar_value(p):
+    'hex_scalar_value : hex_digit_plus'
+    p[0] = p[1]
+
+def p_error(p):
+    print("Syntax error at '%s'" % p.value)
+
+yacc.yacc()
+
+print yacc.parse("ab")

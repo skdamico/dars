@@ -1,0 +1,70 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    UNICODE_CONSTITUENT
+    BOOLEAN
+    SPECIAL_SUBSEQUENT
+    STRING
+    CHARACTER_NAME
+    SPECIAL_INITIAL
+
+Grammar
+
+Rule 0     S' -> hex_digit
+Rule 1     hex_digit -> DIGIT
+Rule 2     hex_digit -> LETTER
+Rule 3     hex_digit_plus -> hex_digit
+Rule 4     hex_digit_plus -> hex_digit hex_digit_plus
+Rule 5     hex_scalar_value -> hex_digit_plus
+
+Terminals, with rules where they appear
+
+BOOLEAN              : 
+CHARACTER_NAME       : 
+DIGIT                : 1
+LETTER               : 2
+SPECIAL_INITIAL      : 
+SPECIAL_SUBSEQUENT   : 
+STRING               : 
+UNICODE_CONSTITUENT  : 
+error                : 
+
+Nonterminals, with rules where they appear
+
+hex_digit            : 3 4 0
+hex_digit_plus       : 4 5
+hex_scalar_value     : 
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . hex_digit
+    (1) hex_digit -> . DIGIT
+    (2) hex_digit -> . LETTER
+
+    DIGIT           shift and go to state 2
+    LETTER          shift and go to state 3
+
+    hex_digit                      shift and go to state 1
+
+state 1
+
+    (0) S' -> hex_digit .
+
+
+
+state 2
+
+    (1) hex_digit -> DIGIT .
+
+    $end            reduce using rule 1 (hex_digit -> DIGIT .)
+
+
+state 3
+
+    (2) hex_digit -> LETTER .
+
+    $end            reduce using rule 2 (hex_digit -> LETTER .)
+
