@@ -1,5 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
+
+import re
 # <input>  ::=  "Signatures:" <signatures> "Equations:" <equations>
 
 # <signatures>  ::=  <signature>
@@ -78,11 +80,11 @@ tokens = (
     "BOOLEAN",
     "UNICODE_CONSTITUENT",
     "CHARACTER_NAME",
-    "STRING"
+    "HEX_ESCAPE",
 )
 
-def t_STRING(t):
-    ur'[\a\b\t\n\v\f\r\"\\]'
+def t_HEX_ESCAPE(t):
+    ur'\\x'
     return t
 
 def t_CHARACTER_NAME(t):
@@ -122,8 +124,8 @@ def t_error(t):
 lexer = lex.lex()
 
 # Test it out
-data = u'''
-A b 2  5  h+ A1 .6 @ - ?@/:^$%<>=_~#t#y \u0081  nulalarm
+data = ur'''
+A b 2  5  h+ A1 .6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x   nulalarm
 '''
 
 # Give the lexer some input
@@ -138,28 +140,27 @@ while True:
 def p_hex_digit(p):
     '''hex_digit : DIGIT
                  | LETTER'''
-    if p[1] == ur'[a-fA-F]' : 
-        p[0] = p[1]
-        print "suck it"
-    elif p[1] == ur'[0-9]' :
-        p[0] = p[1]
-        print "digit"
+    p[0] = p[1]
 
 def p_hex_digit_plus(p):
-    '''hex_digit_plus : hex_digit
-                      | hex_digit hex_digit_plus'''
-    if len(p) == 1 : 
-        p[0] = p[1]
-    elif len(p) > 1: 
-        p[0] = p[1].append(p[2])
+    '''hex_digit_plus : hex_digit_plus hex_digit
+                      | hex_digit'''
+    if (len(p) == 2) : 
+        p[0] = str(p[1])
+    elif (len(p) == 3) : 
+        p[0] = p[1] + str(p[2])
 
 def p_hex_scalar_value(p):
     'hex_scalar_value : hex_digit_plus'
     p[0] = p[1]
 
+def p_inline_hex_escape(p):
+    'inline_hex_escape : HEX_ESCAPE hex_scalar_value'
+    p[0] = str(p[1]) + p[2]
+
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
-yacc.yacc()
+yacc.yacc(start='inline_hex_escape')
 
-print yacc.parse("ab")
+print yacc.parse(ur'\x09')

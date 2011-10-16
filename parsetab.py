@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = '*hX\x7f\x91z=\x96\x9ed\xb8=\xd9\xa2|\xd9'
+_lr_signature = 'Q6)\x10\x7fI d\x89\xaex\x92`\xcc\x0c;'
     
-_lr_action_items = {'DIGIT':([0,],[2,]),'LETTER':([0,],[3,]),'$end':([1,2,3,],[0,-1,-2,]),}
+_lr_action_items = {'HEX_ESCAPE':([0,],[2,]),'DIGIT':([2,3,4,5,7,8,],[5,5,-4,-1,-2,-3,]),'LETTER':([2,3,4,5,7,8,],[7,7,-4,-1,-2,-3,]),'$end':([1,3,4,5,6,7,8,],[0,-5,-4,-1,-6,-2,-3,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'hex_digit':([0,],[1,]),}
+_lr_goto_items = {'inline_hex_escape':([0,],[1,]),'hex_scalar_value':([2,],[6,]),'hex_digit_plus':([2,],[3,]),'hex_digit':([2,3,],[4,8,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -25,10 +25,11 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> hex_digit","S'",1,None,None,None),
-  ('hex_digit -> DIGIT','hex_digit',1,'p_hex_digit','sample.py',139),
-  ('hex_digit -> LETTER','hex_digit',1,'p_hex_digit','sample.py',140),
-  ('hex_digit_plus -> hex_digit','hex_digit_plus',1,'p_hex_digit_plus','sample.py',145),
-  ('hex_digit_plus -> hex_digit hex_digit_plus','hex_digit_plus',2,'p_hex_digit_plus','sample.py',146),
+  ("S' -> inline_hex_escape","S'",1,None,None,None),
+  ('hex_digit -> DIGIT','hex_digit',1,'p_hex_digit','sample.py',141),
+  ('hex_digit -> LETTER','hex_digit',1,'p_hex_digit','sample.py',142),
+  ('hex_digit_plus -> hex_digit_plus hex_digit','hex_digit_plus',2,'p_hex_digit_plus','sample.py',146),
+  ('hex_digit_plus -> hex_digit','hex_digit_plus',1,'p_hex_digit_plus','sample.py',147),
   ('hex_scalar_value -> hex_digit_plus','hex_scalar_value',1,'p_hex_scalar_value','sample.py',154),
+  ('inline_hex_escape -> HEX_ESCAPE hex_scalar_value','inline_hex_escape',2,'p_inline_hex_escape','sample.py',158),
 ]
