@@ -4,124 +4,201 @@ Unused terminals:
 
     UNICODE_CONSTITUENT
     BOOLEAN
-    SPECIAL_SUBSEQUENT
-    CHARACTER_NAME
-    SPECIAL_INITIAL
+    ESCAPE_QUOTE
 
 Grammar
 
-Rule 0     S' -> inline_hex_escape
-Rule 1     hex_digit -> DIGIT
-Rule 2     hex_digit -> LETTER
-Rule 3     hex_digit_plus -> hex_digit_plus hex_digit
-Rule 4     hex_digit_plus -> hex_digit
-Rule 5     hex_scalar_value -> hex_digit_plus
-Rule 6     inline_hex_escape -> HEX_ESCAPE hex_scalar_value
+Rule 0     S' -> character
+Rule 1     empty -> <empty>
+Rule 2     character_tabulation -> ESCAPE LETTER
+Rule 3     any_character -> LETTER
+Rule 4     any_character -> DIGIT
+Rule 5     any_character -> SPECIAL_SUBSEQUENT
+Rule 6     any_character -> SPECIAL_INITIAL
+Rule 7     any_character -> CHARACTER_NAME
+Rule 8     character -> inline_hex_escape
+Rule 9     character -> ESCAPE any_character
+Rule 10    hex_digit -> DIGIT
+Rule 11    hex_digit -> LETTER
+Rule 12    hex_digit_plus -> hex_digit_plus hex_digit
+Rule 13    hex_digit_plus -> hex_digit
+Rule 14    hex_scalar_value -> hex_digit_plus
+Rule 15    inline_hex_escape -> ESCAPE LETTER hex_scalar_value
 
 Terminals, with rules where they appear
 
 BOOLEAN              : 
-CHARACTER_NAME       : 
-DIGIT                : 1
-HEX_ESCAPE           : 6
-LETTER               : 2
-SPECIAL_INITIAL      : 
-SPECIAL_SUBSEQUENT   : 
+CHARACTER_NAME       : 7
+DIGIT                : 4 10
+ESCAPE               : 2 9 15
+ESCAPE_QUOTE         : 
+LETTER               : 2 3 11 15
+SPECIAL_INITIAL      : 6
+SPECIAL_SUBSEQUENT   : 5
 UNICODE_CONSTITUENT  : 
 error                : 
 
 Nonterminals, with rules where they appear
 
-hex_digit            : 3 4
-hex_digit_plus       : 3 5
-hex_scalar_value     : 6
-inline_hex_escape    : 0
+any_character        : 9
+character            : 0
+character_tabulation : 
+empty                : 
+hex_digit            : 12 13
+hex_digit_plus       : 12 14
+hex_scalar_value     : 15
+inline_hex_escape    : 8
 
 Parsing method: LALR
 
 state 0
 
-    (0) S' -> . inline_hex_escape
-    (6) inline_hex_escape -> . HEX_ESCAPE hex_scalar_value
+    (0) S' -> . character
+    (8) character -> . inline_hex_escape
+    (9) character -> . ESCAPE any_character
+    (15) inline_hex_escape -> . ESCAPE LETTER hex_scalar_value
 
-    HEX_ESCAPE      shift and go to state 2
+    ESCAPE          shift and go to state 3
 
     inline_hex_escape              shift and go to state 1
+    character                      shift and go to state 2
 
 state 1
 
-    (0) S' -> inline_hex_escape .
+    (8) character -> inline_hex_escape .
 
+    $end            reduce using rule 8 (character -> inline_hex_escape .)
 
 
 state 2
 
-    (6) inline_hex_escape -> HEX_ESCAPE . hex_scalar_value
-    (5) hex_scalar_value -> . hex_digit_plus
-    (3) hex_digit_plus -> . hex_digit_plus hex_digit
-    (4) hex_digit_plus -> . hex_digit
-    (1) hex_digit -> . DIGIT
-    (2) hex_digit -> . LETTER
+    (0) S' -> character .
 
-    DIGIT           shift and go to state 5
-    LETTER          shift and go to state 7
 
-    hex_scalar_value               shift and go to state 6
-    hex_digit                      shift and go to state 4
-    hex_digit_plus                 shift and go to state 3
 
 state 3
 
-    (5) hex_scalar_value -> hex_digit_plus .
-    (3) hex_digit_plus -> hex_digit_plus . hex_digit
-    (1) hex_digit -> . DIGIT
-    (2) hex_digit -> . LETTER
+    (9) character -> ESCAPE . any_character
+    (15) inline_hex_escape -> ESCAPE . LETTER hex_scalar_value
+    (3) any_character -> . LETTER
+    (4) any_character -> . DIGIT
+    (5) any_character -> . SPECIAL_SUBSEQUENT
+    (6) any_character -> . SPECIAL_INITIAL
+    (7) any_character -> . CHARACTER_NAME
 
-    $end            reduce using rule 5 (hex_scalar_value -> hex_digit_plus .)
-    DIGIT           shift and go to state 5
     LETTER          shift and go to state 7
+    DIGIT           shift and go to state 4
+    SPECIAL_SUBSEQUENT shift and go to state 6
+    SPECIAL_INITIAL shift and go to state 8
+    CHARACTER_NAME  shift and go to state 5
 
-    hex_digit                      shift and go to state 8
+    any_character                  shift and go to state 9
 
 state 4
 
-    (4) hex_digit_plus -> hex_digit .
+    (4) any_character -> DIGIT .
 
-    DIGIT           reduce using rule 4 (hex_digit_plus -> hex_digit .)
-    LETTER          reduce using rule 4 (hex_digit_plus -> hex_digit .)
-    $end            reduce using rule 4 (hex_digit_plus -> hex_digit .)
+    $end            reduce using rule 4 (any_character -> DIGIT .)
 
 
 state 5
 
-    (1) hex_digit -> DIGIT .
+    (7) any_character -> CHARACTER_NAME .
 
-    DIGIT           reduce using rule 1 (hex_digit -> DIGIT .)
-    LETTER          reduce using rule 1 (hex_digit -> DIGIT .)
-    $end            reduce using rule 1 (hex_digit -> DIGIT .)
+    $end            reduce using rule 7 (any_character -> CHARACTER_NAME .)
 
 
 state 6
 
-    (6) inline_hex_escape -> HEX_ESCAPE hex_scalar_value .
+    (5) any_character -> SPECIAL_SUBSEQUENT .
 
-    $end            reduce using rule 6 (inline_hex_escape -> HEX_ESCAPE hex_scalar_value .)
+    $end            reduce using rule 5 (any_character -> SPECIAL_SUBSEQUENT .)
 
 
 state 7
 
-    (2) hex_digit -> LETTER .
+    (15) inline_hex_escape -> ESCAPE LETTER . hex_scalar_value
+    (3) any_character -> LETTER .
+    (14) hex_scalar_value -> . hex_digit_plus
+    (12) hex_digit_plus -> . hex_digit_plus hex_digit
+    (13) hex_digit_plus -> . hex_digit
+    (10) hex_digit -> . DIGIT
+    (11) hex_digit -> . LETTER
 
-    DIGIT           reduce using rule 2 (hex_digit -> LETTER .)
-    LETTER          reduce using rule 2 (hex_digit -> LETTER .)
-    $end            reduce using rule 2 (hex_digit -> LETTER .)
+    $end            reduce using rule 3 (any_character -> LETTER .)
+    DIGIT           shift and go to state 12
+    LETTER          shift and go to state 14
 
+    hex_scalar_value               shift and go to state 13
+    hex_digit                      shift and go to state 11
+    hex_digit_plus                 shift and go to state 10
 
 state 8
 
-    (3) hex_digit_plus -> hex_digit_plus hex_digit .
+    (6) any_character -> SPECIAL_INITIAL .
 
-    DIGIT           reduce using rule 3 (hex_digit_plus -> hex_digit_plus hex_digit .)
-    LETTER          reduce using rule 3 (hex_digit_plus -> hex_digit_plus hex_digit .)
-    $end            reduce using rule 3 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    $end            reduce using rule 6 (any_character -> SPECIAL_INITIAL .)
+
+
+state 9
+
+    (9) character -> ESCAPE any_character .
+
+    $end            reduce using rule 9 (character -> ESCAPE any_character .)
+
+
+state 10
+
+    (14) hex_scalar_value -> hex_digit_plus .
+    (12) hex_digit_plus -> hex_digit_plus . hex_digit
+    (10) hex_digit -> . DIGIT
+    (11) hex_digit -> . LETTER
+
+    $end            reduce using rule 14 (hex_scalar_value -> hex_digit_plus .)
+    DIGIT           shift and go to state 12
+    LETTER          shift and go to state 14
+
+    hex_digit                      shift and go to state 15
+
+state 11
+
+    (13) hex_digit_plus -> hex_digit .
+
+    DIGIT           reduce using rule 13 (hex_digit_plus -> hex_digit .)
+    LETTER          reduce using rule 13 (hex_digit_plus -> hex_digit .)
+    $end            reduce using rule 13 (hex_digit_plus -> hex_digit .)
+
+
+state 12
+
+    (10) hex_digit -> DIGIT .
+
+    DIGIT           reduce using rule 10 (hex_digit -> DIGIT .)
+    LETTER          reduce using rule 10 (hex_digit -> DIGIT .)
+    $end            reduce using rule 10 (hex_digit -> DIGIT .)
+
+
+state 13
+
+    (15) inline_hex_escape -> ESCAPE LETTER hex_scalar_value .
+
+    $end            reduce using rule 15 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+
+
+state 14
+
+    (11) hex_digit -> LETTER .
+
+    DIGIT           reduce using rule 11 (hex_digit -> LETTER .)
+    LETTER          reduce using rule 11 (hex_digit -> LETTER .)
+    $end            reduce using rule 11 (hex_digit -> LETTER .)
+
+
+state 15
+
+    (12) hex_digit_plus -> hex_digit_plus hex_digit .
+
+    DIGIT           reduce using rule 12 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    LETTER          reduce using rule 12 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    $end            reduce using rule 12 (hex_digit_plus -> hex_digit_plus hex_digit .)
 

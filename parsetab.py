@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'Q6)\x10\x7fI d\x89\xaex\x92`\xcc\x0c;'
+_lr_signature = 'mO\xf4a}!\xe8B\x1f\x84\xf1v\x89\x8d\xfaE'
     
-_lr_action_items = {'HEX_ESCAPE':([0,],[2,]),'DIGIT':([2,3,4,5,7,8,],[5,5,-4,-1,-2,-3,]),'LETTER':([2,3,4,5,7,8,],[7,7,-4,-1,-2,-3,]),'$end':([1,3,4,5,6,7,8,],[0,-5,-4,-1,-6,-2,-3,]),}
+_lr_action_items = {'DIGIT':([3,7,10,11,12,14,15,],[4,12,12,-13,-10,-11,-12,]),'SPECIAL_SUBSEQUENT':([3,],[6,]),'LETTER':([3,7,10,11,12,14,15,],[7,14,14,-13,-10,-11,-12,]),'ESCAPE':([0,],[3,]),'SPECIAL_INITIAL':([3,],[8,]),'CHARACTER_NAME':([3,],[5,]),'$end':([1,2,4,5,6,7,8,9,10,11,12,13,14,15,],[-8,0,-4,-7,-5,-3,-6,-9,-14,-13,-10,-15,-11,-12,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'inline_hex_escape':([0,],[1,]),'hex_scalar_value':([2,],[6,]),'hex_digit_plus':([2,],[3,]),'hex_digit':([2,3,],[4,8,]),}
+_lr_goto_items = {'inline_hex_escape':([0,],[1,]),'hex_digit_plus':([7,],[10,]),'hex_digit':([7,10,],[11,15,]),'character':([0,],[2,]),'hex_scalar_value':([7,],[13,]),'any_character':([3,],[9,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -25,11 +25,20 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> inline_hex_escape","S'",1,None,None,None),
-  ('hex_digit -> DIGIT','hex_digit',1,'p_hex_digit','sample.py',141),
-  ('hex_digit -> LETTER','hex_digit',1,'p_hex_digit','sample.py',142),
-  ('hex_digit_plus -> hex_digit_plus hex_digit','hex_digit_plus',2,'p_hex_digit_plus','sample.py',146),
-  ('hex_digit_plus -> hex_digit','hex_digit_plus',1,'p_hex_digit_plus','sample.py',147),
-  ('hex_scalar_value -> hex_digit_plus','hex_scalar_value',1,'p_hex_scalar_value','sample.py',154),
-  ('inline_hex_escape -> HEX_ESCAPE hex_scalar_value','inline_hex_escape',2,'p_inline_hex_escape','sample.py',158),
+  ("S' -> character","S'",1,None,None,None),
+  ('empty -> <empty>','empty',0,'p_empty','sample.py',146),
+  ('character_tabulation -> ESCAPE LETTER','character_tabulation',2,'p_character_tabulation','sample.py',150),
+  ('any_character -> LETTER','any_character',1,'p_any_character','sample.py',187),
+  ('any_character -> DIGIT','any_character',1,'p_any_character','sample.py',188),
+  ('any_character -> SPECIAL_SUBSEQUENT','any_character',1,'p_any_character','sample.py',189),
+  ('any_character -> SPECIAL_INITIAL','any_character',1,'p_any_character','sample.py',190),
+  ('any_character -> CHARACTER_NAME','any_character',1,'p_any_character','sample.py',191),
+  ('character -> inline_hex_escape','character',1,'p_character','sample.py',195),
+  ('character -> ESCAPE any_character','character',2,'p_character','sample.py',196),
+  ('hex_digit -> DIGIT','hex_digit',1,'p_hex_digit','sample.py',203),
+  ('hex_digit -> LETTER','hex_digit',1,'p_hex_digit','sample.py',204),
+  ('hex_digit_plus -> hex_digit_plus hex_digit','hex_digit_plus',2,'p_hex_digit_plus','sample.py',208),
+  ('hex_digit_plus -> hex_digit','hex_digit_plus',1,'p_hex_digit_plus','sample.py',209),
+  ('hex_scalar_value -> hex_digit_plus','hex_scalar_value',1,'p_hex_scalar_value','sample.py',216),
+  ('inline_hex_escape -> ESCAPE LETTER hex_scalar_value','inline_hex_escape',3,'p_inline_hex_escape','sample.py',220),
 ]
