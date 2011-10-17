@@ -88,6 +88,8 @@ tokens = (
     "PERIOD",
     "AT_SYMBOL",
     "GREATER",
+    "UNICODE_ZS",
+<<<<<<< HEAD
 	"ESCAPE_QUOTE",
     "T_NAME",
     "STAR",
@@ -96,6 +98,7 @@ tokens = (
     "ADT",
     "SIGNATURE",
     "EQUATIONS",
+=======
     "UNICODE_PC",
     "UNICODE_ME",
     "UNICODE_CO",
@@ -115,6 +118,8 @@ tokens = (
     "UNICODE_SM",
     "UNICODE_SK",
     "UNICODE_SO",
+	"ESCAPE_QUOTE"
+>>>>>>> 3e22d72c12d0b16102a0a01fe2a9d7b8c469a45a
 )
 
 def t_COLON(t): 
@@ -290,9 +295,15 @@ def t_error(t):
 lexer = lex.lex(reflags=re.UNICODE)
 
 # Test it out
+<<<<<<< HEAD
 #data = ur'''
 #A b 2  5  h+ A1 ...6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x ->  nulalarm \"
 #'''
+=======
+data = ur'''
+A b 2  5  h+ A1 ...6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x -> < nulalarm
+'''
+>>>>>>> 3e22d72c12d0b16102a0a01fe2a9d7b8c469a45a
 
 
 
@@ -558,4 +569,11 @@ file.close()
 
 
 
+
+#print yacc.parse(ur'\x09')
+#print yacc.parse(ur'...')
+#print yacc.parse(ur'\@')
+#print yacc.parse(ur'\backspace')
+#print "\nTesting character_tabulation"
+#print yacc.parse(ur'\t')
 
