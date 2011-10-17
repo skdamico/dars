@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'Q6)\x10\x7fI d\x89\xaex\x92`\xcc\x0c;'
+_lr_signature = ':\xc6\xb5\x137*\x9b\xaeG\xf3D\xbf\xf0/b~'
     
-_lr_action_items = {'HEX_ESCAPE':([0,],[2,]),'DIGIT':([2,3,4,5,7,8,],[5,5,-4,-1,-2,-3,]),'LETTER':([2,3,4,5,7,8,],[7,7,-4,-1,-2,-3,]),'$end':([1,3,4,5,6,7,8,],[0,-5,-4,-1,-6,-2,-3,]),}
+_lr_action_items = {'$end':([1,2,3,4,5,6,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,30,31,32,33,34,35,36,37,],[-26,-38,-13,-14,-12,-1,-35,-15,-34,-24,0,-36,-25,-37,-29,-31,-27,-10,-8,-28,-11,-9,-32,-1,-30,-23,-6,-5,-2,-7,-3,-33,-4,]),'DIGIT':([1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,27,28,29,31,32,33,34,35,36,37,],[-26,-13,-14,-12,17,-15,-24,-25,17,-29,-31,-27,-10,-8,-28,-11,-9,-32,33,17,-30,33,-5,-2,-7,-3,17,-4,]),'AT_SYMBOL':([1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[-26,-13,-14,-12,23,-15,-24,-25,23,-29,-31,-27,-10,-8,-28,-11,-9,-32,23,-30,-6,-5,-2,-7,-3,23,-4,]),'GREATER':([0,1,3,4,5,6,9,11,14,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[3,-26,-13,-14,-12,3,-15,-24,28,-25,3,-29,-31,-27,-10,-8,-28,-11,-9,-32,3,-30,-6,-5,-2,-7,-3,3,-4,]),'PERIOD':([0,1,3,4,5,6,7,9,11,15,16,17,18,19,20,21,22,23,24,25,26,28,29,31,32,33,34,35,36,37,],[7,-26,-13,-14,-12,20,26,-15,-24,-25,20,-29,-31,-27,-10,-8,-28,-11,-9,-32,30,20,-30,-6,-5,-2,-7,-3,20,-4,]),'PLUS':([0,1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[8,-26,-13,-14,-12,21,-15,-24,-25,21,-29,-31,-27,-10,-8,-28,-11,-9,-32,21,-30,-6,-5,-2,-7,-3,21,-4,]),'LETTER':([0,1,3,4,5,6,9,11,12,15,16,17,18,19,20,21,22,23,24,25,27,28,29,31,32,33,34,35,36,37,],[9,-26,-13,-14,-12,9,-15,-24,27,-25,9,-29,-31,-27,-10,-8,-28,-11,-9,-32,35,9,-30,35,-5,-2,-7,-3,9,-4,]),'ESCAPE':([0,1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[12,-26,-13,-14,-12,12,-15,-24,-25,12,-29,-31,-27,-10,-8,-28,-11,-9,-32,12,-30,-6,-5,-2,-7,-3,12,-4,]),'SPECIAL_INITIAL':([0,1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[5,-26,-13,-14,-12,5,-15,-24,-25,5,-29,-31,-27,-10,-8,-28,-11,-9,-32,5,-30,-6,-5,-2,-7,-3,5,-4,]),'MINUS':([0,1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[14,-26,-13,-14,-12,24,-15,-24,-25,24,-29,-31,-27,-10,-8,-28,-11,-9,-32,24,-30,-6,-5,-2,-7,-3,24,-4,]),'UNICODE_CONSTITUENT':([0,1,3,4,5,6,9,11,15,16,17,18,19,20,21,22,23,24,25,28,29,31,32,33,34,35,36,37,],[4,-26,-13,-14,-12,4,-15,-24,-25,4,-29,-31,-27,-10,-8,-28,-11,-9,-32,4,-30,-6,-5,-2,-7,-3,4,-4,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'inline_hex_escape':([0,],[1,]),'hex_scalar_value':([2,],[6,]),'hex_digit_plus':([2,],[3,]),'hex_digit':([2,3,],[4,8,]),}
+_lr_goto_items = {'inline_hex_escape':([0,6,16,28,36,],[1,1,1,1,1,]),'subsequent_star':([6,28,],[16,36,]),'peculiar_identifier':([0,],[2,]),'hex_digit':([27,31,],[32,37,]),'subsequent':([6,16,28,36,],[18,29,18,29,]),'initial':([0,6,16,28,36,],[6,19,19,19,19,]),'hex_digit_plus':([27,],[31,]),'hex_scalar_value':([27,],[34,]),'special_subsequent':([6,16,28,36,],[22,22,22,22,]),'ellipsis':([0,],[10,]),'constituent':([0,6,16,28,36,],[11,11,11,11,11,]),'identifier':([0,],[13,]),'empty':([6,28,],[25,25,]),'special_initial':([0,6,16,28,36,],[15,15,15,15,15,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -25,11 +25,43 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> inline_hex_escape","S'",1,None,None,None),
-  ('hex_digit -> DIGIT','hex_digit',1,'p_hex_digit','sample.py',141),
-  ('hex_digit -> LETTER','hex_digit',1,'p_hex_digit','sample.py',142),
-  ('hex_digit_plus -> hex_digit_plus hex_digit','hex_digit_plus',2,'p_hex_digit_plus','sample.py',146),
-  ('hex_digit_plus -> hex_digit','hex_digit_plus',1,'p_hex_digit_plus','sample.py',147),
-  ('hex_scalar_value -> hex_digit_plus','hex_scalar_value',1,'p_hex_scalar_value','sample.py',154),
-  ('inline_hex_escape -> HEX_ESCAPE hex_scalar_value','inline_hex_escape',2,'p_inline_hex_escape','sample.py',158),
+  ("S' -> identifier","S'",1,None,None,None),
+  ('empty -> <empty>','empty',0,'p_empty','sample.py',174),
+  ('hex_digit -> DIGIT','hex_digit',1,'p_hex_digit','sample.py',183),
+  ('hex_digit -> LETTER','hex_digit',1,'p_hex_digit','sample.py',184),
+  ('hex_digit_plus -> hex_digit_plus hex_digit','hex_digit_plus',2,'p_hex_digit_plus','sample.py',188),
+  ('hex_digit_plus -> hex_digit','hex_digit_plus',1,'p_hex_digit_plus','sample.py',189),
+  ('hex_scalar_value -> hex_digit_plus','hex_scalar_value',1,'p_hex_scalar_value','sample.py',196),
+  ('inline_hex_escape -> ESCAPE LETTER hex_scalar_value','inline_hex_escape',3,'p_inline_hex_escape','sample.py',200),
+  ('special_subsequent -> PLUS','special_subsequent',1,'p_special_subsequent','sample.py',204),
+  ('special_subsequent -> MINUS','special_subsequent',1,'p_special_subsequent','sample.py',205),
+  ('special_subsequent -> PERIOD','special_subsequent',1,'p_special_subsequent','sample.py',206),
+  ('special_subsequent -> AT_SYMBOL','special_subsequent',1,'p_special_subsequent','sample.py',207),
+  ('special_initial -> SPECIAL_INITIAL','special_initial',1,'p_special_initial','sample.py',211),
+  ('special_initial -> GREATER','special_initial',1,'p_special_initial','sample.py',212),
+  ('constituent -> UNICODE_CONSTITUENT','constituent',1,'p_constituent','sample.py',217),
+  ('constituent -> LETTER','constituent',1,'p_constituent','sample.py',218),
+  ('character_types -> special_subsequent','character_types',1,'p_character_types','sample.py',222),
+  ('character_types -> special_initial','character_types',1,'p_character_types','sample.py',223),
+  ('character_types -> DIGIT','character_types',1,'p_character_types','sample.py',224),
+  ('character_types -> LETTER','character_types',1,'p_character_types','sample.py',225),
+  ('character_types -> CHARACTER_NAME','character_types',1,'p_character_types','sample.py',226),
+  ('character -> inline_hex_escape','character',1,'p_character','sample.py',230),
+  ('character -> ESCAPE character_types','character',2,'p_character','sample.py',231),
+  ('ellipsis -> PERIOD PERIOD PERIOD','ellipsis',3,'p_ellipsis','sample.py',238),
+  ('initial -> constituent','initial',1,'p_initial','sample.py',242),
+  ('initial -> special_initial','initial',1,'p_initial','sample.py',243),
+  ('initial -> inline_hex_escape','initial',1,'p_initial','sample.py',244),
+  ('subsequent -> initial','subsequent',1,'p_subsequent','sample.py',249),
+  ('subsequent -> special_subsequent','subsequent',1,'p_subsequent','sample.py',250),
+  ('subsequent -> DIGIT','subsequent',1,'p_subsequent','sample.py',251),
+  ('subsequent_star -> subsequent_star subsequent','subsequent_star',2,'p_subsequent_star_1','sample.py',255),
+  ('subsequent_star -> subsequent','subsequent_star',1,'p_subsequent_star_1','sample.py',256),
+  ('subsequent_star -> empty','subsequent_star',1,'p_subsequent_star_1','sample.py',257),
+  ('peculiar_identifier -> MINUS GREATER subsequent_star','peculiar_identifier',3,'p_peculiar_identifier','sample.py',264),
+  ('peculiar_identifier -> ellipsis','peculiar_identifier',1,'p_peculiar_identifier','sample.py',265),
+  ('peculiar_identifier -> PLUS','peculiar_identifier',1,'p_peculiar_identifier','sample.py',266),
+  ('peculiar_identifier -> MINUS','peculiar_identifier',1,'p_peculiar_identifier','sample.py',267),
+  ('identifier -> initial subsequent_star','identifier',2,'p_identifier','sample.py',274),
+  ('identifier -> peculiar_identifier','identifier',1,'p_identifier','sample.py',275),
 ]

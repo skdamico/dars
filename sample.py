@@ -1,7 +1,9 @@
 import ply.lex as lex
 import ply.yacc as yacc
-
 import re
+import codecs, sys
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+
 # <input>  ::=  "Signatures:" <signatures> "Equations:" <equations>
 
 # <signatures>  ::=  <signature>
@@ -75,24 +77,59 @@ import re
 tokens = (
     "LETTER",
     "DIGIT",
-    "SPECIAL_SUBSEQUENT",
     "SPECIAL_INITIAL",
     "BOOLEAN",
     "UNICODE_CONSTITUENT",
     "CHARACTER_NAME",
-    "HEX_ESCAPE",
+    "ESCAPE",
+    "PLUS",
+    "MINUS",
+    "PERIOD",
+    "AT_SYMBOL",
+    "GREATER",
+    "UNICODE_ZS"
 )
 
-def t_HEX_ESCAPE(t):
-    ur'\\x'
-    return t
+# UNICODE
 
-def t_CHARACTER_NAME(t):
-    ur'nul | alarm | backspace | tab | linefeed | newline | vtab | page | return | esc | space | delete'
+# Lu, Ll, Lt, Lm, Lo, Mn, Nl, No, Pd, Pc, Po, Sc, Sm, Sk, So, Co
+# Nd, Mc, Me
+
+def t_UNICODE_ZS(t):
+    ur'[\u0020\u00A0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]'
     return t
 
 def t_UNICODE_CONSTITUENT(t):
     ur'[\u0080-\uFFFF]'
+    return t
+
+
+def t_PLUS(t):
+    ur'\+'
+    return t
+
+def t_MINUS(t):
+    ur'-'
+    return t
+
+def t_PERIOD(t):
+    ur'\.'
+    return t
+
+def t_AT_SYMBOL(t):
+    ur'@'
+    return t
+
+def t_GREATER(t):
+    ur'>'
+    return t
+
+def t_ESCAPE(t):
+    ur'\\'
+    return t
+
+def t_CHARACTER_NAME(t):
+    ur'nul | alarm | backspace | tab | linefeed | newline | vtab | page | return | esc | space | delete'
     return t
 
 def t_BOOLEAN(t):
@@ -100,11 +137,7 @@ def t_BOOLEAN(t):
     return t
 
 def t_SPECIAL_INITIAL(t):
-    ur'[!$%&*/:<=>?^_~]'
-    return t
-
-def t_SPECIAL_SUBSEQUENT(t):
-    ur'[+-.@]'
+    ur'[!$%&*/:<=?^_~]'
     return t
 
 def t_LETTER(t):
@@ -121,11 +154,11 @@ def t_error(t):
     print "Illegal character '%s'" % t.value[0]
     t.lexer.skip(1)
 
-lexer = lex.lex()
+lexer = lex.lex(reflags=re.UNICODE)
 
 # Test it out
 data = ur'''
-A b 2  5  h+ A1 .6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x   nulalarm
+A b 2  5  h+ A1 ...6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x ->  nulalarm
 '''
 
 # Give the lexer some input
@@ -136,6 +169,15 @@ while True:
     tok = lexer.token()
     if not tok: break      # No more input
     print tok
+
+def p_empty(p):
+    'empty :'
+    pass
+
+#def p_intraline_whitespace(p):
+#    '''intraline_whitespace : TAB
+#                            | UNICODE_ZS'''
+#    p[0] = p[1]
 
 def p_hex_digit(p):
     '''hex_digit : DIGIT
@@ -155,12 +197,90 @@ def p_hex_scalar_value(p):
     p[0] = p[1]
 
 def p_inline_hex_escape(p):
-    'inline_hex_escape : HEX_ESCAPE hex_scalar_value'
-    p[0] = str(p[1]) + p[2]
+    'inline_hex_escape : ESCAPE LETTER hex_scalar_value'
+    if p[2] == u'x' : p[0] = str(p[1]) + str(p[1]) + p[2]
+
+def p_special_subsequent(p):
+    '''special_subsequent : PLUS 
+                          | MINUS 
+                          | PERIOD 
+                          | AT_SYMBOL'''
+    p[0] = p[1]
+
+def p_special_initial(p):
+    '''special_initial : SPECIAL_INITIAL 
+                       | GREATER'''
+    p[0] = p[1]
+
+# fix unicode_constituent
+def p_constituent(p):
+    '''constituent : UNICODE_CONSTITUENT
+                   | LETTER'''
+    p[0] = p[1]
+
+def p_character_types(p):
+    '''character_types : special_subsequent
+                       | special_initial
+                       | DIGIT
+                       | LETTER
+                       | CHARACTER_NAME'''
+    p[0] = p[1]
+
+def p_character(p):
+    '''character : inline_hex_escape
+                 | ESCAPE character_types'''
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = str(p[1]) + str(p[2])
+
+def p_ellipsis(p):
+    'ellipsis : PERIOD PERIOD PERIOD'
+    p[0] = p[1] + p[2] + p[3]
+
+def p_initial(p):
+    '''initial : constituent 
+               | special_initial 
+               | inline_hex_escape'''
+    p[0] = p[1]
+
+# ADD UNICODE - Nd, Mc, Me
+def p_subsequent(p):
+    '''subsequent : initial
+                  | special_subsequent
+                  | DIGIT'''
+    p[0] = p[1]
+
+def p_subsequent_star(p):
+    '''subsequent_star : subsequent_star subsequent
+                       | subsequent
+                       | empty'''
+    if len(p) == 3 : 
+        p[0] = p[1] + str(p[2])
+    else :
+        p[0] = p[1]
+
+def p_peculiar_identifier(p):
+    '''peculiar_identifier : MINUS GREATER subsequent_star 
+                           | ellipsis
+                           | PLUS
+                           | MINUS'''
+    if len(p) == 4 :
+        p[0] = str(p[1]) + str(p[2]) + p[3]
+    else :
+        p[0] = p[1]
+
+def p_identifier(p):
+    '''identifier : initial subsequent_star
+                  | peculiar_identifier'''
+    if len(p) == 3 : 
+        p[0] = p[1] + p[2]
+    else : 
+        p[0] = p[1]
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
-yacc.yacc(start='inline_hex_escape')
+yacc.yacc(start='identifier')
 
-print yacc.parse(ur'\x09')
+print yacc.parse(ur'\x09 \x09')

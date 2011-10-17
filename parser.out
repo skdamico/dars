@@ -2,126 +2,834 @@ Created by PLY version 3.4 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
-    UNICODE_CONSTITUENT
+    UNICODE_ZS
     BOOLEAN
-    SPECIAL_SUBSEQUENT
-    CHARACTER_NAME
-    SPECIAL_INITIAL
 
 Grammar
 
-Rule 0     S' -> inline_hex_escape
-Rule 1     hex_digit -> DIGIT
-Rule 2     hex_digit -> LETTER
-Rule 3     hex_digit_plus -> hex_digit_plus hex_digit
-Rule 4     hex_digit_plus -> hex_digit
-Rule 5     hex_scalar_value -> hex_digit_plus
-Rule 6     inline_hex_escape -> HEX_ESCAPE hex_scalar_value
+Rule 0     S' -> identifier
+Rule 1     empty -> <empty>
+Rule 2     hex_digit -> DIGIT
+Rule 3     hex_digit -> LETTER
+Rule 4     hex_digit_plus -> hex_digit_plus hex_digit
+Rule 5     hex_digit_plus -> hex_digit
+Rule 6     hex_scalar_value -> hex_digit_plus
+Rule 7     inline_hex_escape -> ESCAPE LETTER hex_scalar_value
+Rule 8     special_subsequent -> PLUS
+Rule 9     special_subsequent -> MINUS
+Rule 10    special_subsequent -> PERIOD
+Rule 11    special_subsequent -> AT_SYMBOL
+Rule 12    special_initial -> SPECIAL_INITIAL
+Rule 13    special_initial -> GREATER
+Rule 14    constituent -> UNICODE_CONSTITUENT
+Rule 15    constituent -> LETTER
+Rule 16    character_types -> special_subsequent
+Rule 17    character_types -> special_initial
+Rule 18    character_types -> DIGIT
+Rule 19    character_types -> LETTER
+Rule 20    character_types -> CHARACTER_NAME
+Rule 21    character -> inline_hex_escape
+Rule 22    character -> ESCAPE character_types
+Rule 23    ellipsis -> PERIOD PERIOD PERIOD
+Rule 24    initial -> constituent
+Rule 25    initial -> special_initial
+Rule 26    initial -> inline_hex_escape
+Rule 27    subsequent -> initial
+Rule 28    subsequent -> special_subsequent
+Rule 29    subsequent -> DIGIT
+Rule 30    subsequent_star -> subsequent_star subsequent
+Rule 31    subsequent_star -> subsequent
+Rule 32    subsequent_star -> empty
+Rule 33    peculiar_identifier -> MINUS GREATER subsequent_star
+Rule 34    peculiar_identifier -> ellipsis
+Rule 35    peculiar_identifier -> PLUS
+Rule 36    peculiar_identifier -> MINUS
+Rule 37    identifier -> initial subsequent_star
+Rule 38    identifier -> peculiar_identifier
 
 Terminals, with rules where they appear
 
+AT_SYMBOL            : 11
 BOOLEAN              : 
-CHARACTER_NAME       : 
-DIGIT                : 1
-HEX_ESCAPE           : 6
-LETTER               : 2
-SPECIAL_INITIAL      : 
-SPECIAL_SUBSEQUENT   : 
-UNICODE_CONSTITUENT  : 
+CHARACTER_NAME       : 20
+DIGIT                : 2 18 29
+ESCAPE               : 7 22
+GREATER              : 13 33
+LETTER               : 3 7 15 19
+MINUS                : 9 33 36
+PERIOD               : 10 23 23 23
+PLUS                 : 8 35
+SPECIAL_INITIAL      : 12
+UNICODE_CONSTITUENT  : 14
+UNICODE_ZS           : 
 error                : 
 
 Nonterminals, with rules where they appear
 
-hex_digit            : 3 4
-hex_digit_plus       : 3 5
-hex_scalar_value     : 6
-inline_hex_escape    : 0
+character            : 
+character_types      : 22
+constituent          : 24
+ellipsis             : 34
+empty                : 32
+hex_digit            : 4 5
+hex_digit_plus       : 4 6
+hex_scalar_value     : 7
+identifier           : 0
+initial              : 27 37
+inline_hex_escape    : 21 26
+peculiar_identifier  : 38
+special_initial      : 17 25
+special_subsequent   : 16 28
+subsequent           : 30 31
+subsequent_star      : 30 33 37
 
 Parsing method: LALR
 
 state 0
 
-    (0) S' -> . inline_hex_escape
-    (6) inline_hex_escape -> . HEX_ESCAPE hex_scalar_value
+    (0) S' -> . identifier
+    (37) identifier -> . initial subsequent_star
+    (38) identifier -> . peculiar_identifier
+    (24) initial -> . constituent
+    (25) initial -> . special_initial
+    (26) initial -> . inline_hex_escape
+    (33) peculiar_identifier -> . MINUS GREATER subsequent_star
+    (34) peculiar_identifier -> . ellipsis
+    (35) peculiar_identifier -> . PLUS
+    (36) peculiar_identifier -> . MINUS
+    (14) constituent -> . UNICODE_CONSTITUENT
+    (15) constituent -> . LETTER
+    (12) special_initial -> . SPECIAL_INITIAL
+    (13) special_initial -> . GREATER
+    (7) inline_hex_escape -> . ESCAPE LETTER hex_scalar_value
+    (23) ellipsis -> . PERIOD PERIOD PERIOD
 
-    HEX_ESCAPE      shift and go to state 2
+    MINUS           shift and go to state 14
+    PLUS            shift and go to state 8
+    UNICODE_CONSTITUENT shift and go to state 4
+    LETTER          shift and go to state 9
+    SPECIAL_INITIAL shift and go to state 5
+    GREATER         shift and go to state 3
+    ESCAPE          shift and go to state 12
+    PERIOD          shift and go to state 7
 
     inline_hex_escape              shift and go to state 1
+    peculiar_identifier            shift and go to state 2
+    initial                        shift and go to state 6
+    ellipsis                       shift and go to state 10
+    constituent                    shift and go to state 11
+    identifier                     shift and go to state 13
+    special_initial                shift and go to state 15
 
 state 1
 
-    (0) S' -> inline_hex_escape .
+    (26) initial -> inline_hex_escape .
 
+    DIGIT           reduce using rule 26 (initial -> inline_hex_escape .)
+    PLUS            reduce using rule 26 (initial -> inline_hex_escape .)
+    MINUS           reduce using rule 26 (initial -> inline_hex_escape .)
+    PERIOD          reduce using rule 26 (initial -> inline_hex_escape .)
+    AT_SYMBOL       reduce using rule 26 (initial -> inline_hex_escape .)
+    UNICODE_CONSTITUENT reduce using rule 26 (initial -> inline_hex_escape .)
+    LETTER          reduce using rule 26 (initial -> inline_hex_escape .)
+    SPECIAL_INITIAL reduce using rule 26 (initial -> inline_hex_escape .)
+    GREATER         reduce using rule 26 (initial -> inline_hex_escape .)
+    ESCAPE          reduce using rule 26 (initial -> inline_hex_escape .)
+    $end            reduce using rule 26 (initial -> inline_hex_escape .)
 
 
 state 2
 
-    (6) inline_hex_escape -> HEX_ESCAPE . hex_scalar_value
-    (5) hex_scalar_value -> . hex_digit_plus
-    (3) hex_digit_plus -> . hex_digit_plus hex_digit
-    (4) hex_digit_plus -> . hex_digit
-    (1) hex_digit -> . DIGIT
-    (2) hex_digit -> . LETTER
+    (38) identifier -> peculiar_identifier .
 
-    DIGIT           shift and go to state 5
-    LETTER          shift and go to state 7
+    $end            reduce using rule 38 (identifier -> peculiar_identifier .)
 
-    hex_scalar_value               shift and go to state 6
-    hex_digit                      shift and go to state 4
-    hex_digit_plus                 shift and go to state 3
 
 state 3
 
-    (5) hex_scalar_value -> hex_digit_plus .
-    (3) hex_digit_plus -> hex_digit_plus . hex_digit
-    (1) hex_digit -> . DIGIT
-    (2) hex_digit -> . LETTER
+    (13) special_initial -> GREATER .
 
-    $end            reduce using rule 5 (hex_scalar_value -> hex_digit_plus .)
-    DIGIT           shift and go to state 5
-    LETTER          shift and go to state 7
+    DIGIT           reduce using rule 13 (special_initial -> GREATER .)
+    PLUS            reduce using rule 13 (special_initial -> GREATER .)
+    MINUS           reduce using rule 13 (special_initial -> GREATER .)
+    PERIOD          reduce using rule 13 (special_initial -> GREATER .)
+    AT_SYMBOL       reduce using rule 13 (special_initial -> GREATER .)
+    UNICODE_CONSTITUENT reduce using rule 13 (special_initial -> GREATER .)
+    LETTER          reduce using rule 13 (special_initial -> GREATER .)
+    SPECIAL_INITIAL reduce using rule 13 (special_initial -> GREATER .)
+    GREATER         reduce using rule 13 (special_initial -> GREATER .)
+    ESCAPE          reduce using rule 13 (special_initial -> GREATER .)
+    $end            reduce using rule 13 (special_initial -> GREATER .)
 
-    hex_digit                      shift and go to state 8
 
 state 4
 
-    (4) hex_digit_plus -> hex_digit .
+    (14) constituent -> UNICODE_CONSTITUENT .
 
-    DIGIT           reduce using rule 4 (hex_digit_plus -> hex_digit .)
-    LETTER          reduce using rule 4 (hex_digit_plus -> hex_digit .)
-    $end            reduce using rule 4 (hex_digit_plus -> hex_digit .)
+    DIGIT           reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    PLUS            reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    MINUS           reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    PERIOD          reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    AT_SYMBOL       reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    UNICODE_CONSTITUENT reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    LETTER          reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    SPECIAL_INITIAL reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    GREATER         reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    ESCAPE          reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+    $end            reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
 
 
 state 5
 
-    (1) hex_digit -> DIGIT .
+    (12) special_initial -> SPECIAL_INITIAL .
 
-    DIGIT           reduce using rule 1 (hex_digit -> DIGIT .)
-    LETTER          reduce using rule 1 (hex_digit -> DIGIT .)
-    $end            reduce using rule 1 (hex_digit -> DIGIT .)
+    DIGIT           reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    PLUS            reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    MINUS           reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    PERIOD          reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    AT_SYMBOL       reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    UNICODE_CONSTITUENT reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    LETTER          reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    SPECIAL_INITIAL reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    GREATER         reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    ESCAPE          reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+    $end            reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
 
 
 state 6
 
-    (6) inline_hex_escape -> HEX_ESCAPE hex_scalar_value .
+    (37) identifier -> initial . subsequent_star
+    (30) subsequent_star -> . subsequent_star subsequent
+    (31) subsequent_star -> . subsequent
+    (32) subsequent_star -> . empty
+    (27) subsequent -> . initial
+    (28) subsequent -> . special_subsequent
+    (29) subsequent -> . DIGIT
+    (1) empty -> .
+    (24) initial -> . constituent
+    (25) initial -> . special_initial
+    (26) initial -> . inline_hex_escape
+    (8) special_subsequent -> . PLUS
+    (9) special_subsequent -> . MINUS
+    (10) special_subsequent -> . PERIOD
+    (11) special_subsequent -> . AT_SYMBOL
+    (14) constituent -> . UNICODE_CONSTITUENT
+    (15) constituent -> . LETTER
+    (12) special_initial -> . SPECIAL_INITIAL
+    (13) special_initial -> . GREATER
+    (7) inline_hex_escape -> . ESCAPE LETTER hex_scalar_value
 
-    $end            reduce using rule 6 (inline_hex_escape -> HEX_ESCAPE hex_scalar_value .)
+  ! shift/reduce conflict for DIGIT resolved as shift
+  ! shift/reduce conflict for PLUS resolved as shift
+  ! shift/reduce conflict for MINUS resolved as shift
+  ! shift/reduce conflict for PERIOD resolved as shift
+  ! shift/reduce conflict for AT_SYMBOL resolved as shift
+  ! shift/reduce conflict for UNICODE_CONSTITUENT resolved as shift
+  ! shift/reduce conflict for LETTER resolved as shift
+  ! shift/reduce conflict for SPECIAL_INITIAL resolved as shift
+  ! shift/reduce conflict for GREATER resolved as shift
+  ! shift/reduce conflict for ESCAPE resolved as shift
+    DIGIT           shift and go to state 17
+    $end            reduce using rule 1 (empty -> .)
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 24
+    PERIOD          shift and go to state 20
+    AT_SYMBOL       shift and go to state 23
+    UNICODE_CONSTITUENT shift and go to state 4
+    LETTER          shift and go to state 9
+    SPECIAL_INITIAL shift and go to state 5
+    GREATER         shift and go to state 3
+    ESCAPE          shift and go to state 12
 
+  ! DIGIT           [ reduce using rule 1 (empty -> .) ]
+  ! PLUS            [ reduce using rule 1 (empty -> .) ]
+  ! MINUS           [ reduce using rule 1 (empty -> .) ]
+  ! PERIOD          [ reduce using rule 1 (empty -> .) ]
+  ! AT_SYMBOL       [ reduce using rule 1 (empty -> .) ]
+  ! UNICODE_CONSTITUENT [ reduce using rule 1 (empty -> .) ]
+  ! LETTER          [ reduce using rule 1 (empty -> .) ]
+  ! SPECIAL_INITIAL [ reduce using rule 1 (empty -> .) ]
+  ! GREATER         [ reduce using rule 1 (empty -> .) ]
+  ! ESCAPE          [ reduce using rule 1 (empty -> .) ]
+
+    inline_hex_escape              shift and go to state 1
+    subsequent_star                shift and go to state 16
+    subsequent                     shift and go to state 18
+    initial                        shift and go to state 19
+    special_subsequent             shift and go to state 22
+    constituent                    shift and go to state 11
+    empty                          shift and go to state 25
+    special_initial                shift and go to state 15
 
 state 7
 
-    (2) hex_digit -> LETTER .
+    (23) ellipsis -> PERIOD . PERIOD PERIOD
 
-    DIGIT           reduce using rule 2 (hex_digit -> LETTER .)
-    LETTER          reduce using rule 2 (hex_digit -> LETTER .)
-    $end            reduce using rule 2 (hex_digit -> LETTER .)
+    PERIOD          shift and go to state 26
 
 
 state 8
 
-    (3) hex_digit_plus -> hex_digit_plus hex_digit .
+    (35) peculiar_identifier -> PLUS .
 
-    DIGIT           reduce using rule 3 (hex_digit_plus -> hex_digit_plus hex_digit .)
-    LETTER          reduce using rule 3 (hex_digit_plus -> hex_digit_plus hex_digit .)
-    $end            reduce using rule 3 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    $end            reduce using rule 35 (peculiar_identifier -> PLUS .)
 
+
+state 9
+
+    (15) constituent -> LETTER .
+
+    DIGIT           reduce using rule 15 (constituent -> LETTER .)
+    PLUS            reduce using rule 15 (constituent -> LETTER .)
+    MINUS           reduce using rule 15 (constituent -> LETTER .)
+    PERIOD          reduce using rule 15 (constituent -> LETTER .)
+    AT_SYMBOL       reduce using rule 15 (constituent -> LETTER .)
+    UNICODE_CONSTITUENT reduce using rule 15 (constituent -> LETTER .)
+    LETTER          reduce using rule 15 (constituent -> LETTER .)
+    SPECIAL_INITIAL reduce using rule 15 (constituent -> LETTER .)
+    GREATER         reduce using rule 15 (constituent -> LETTER .)
+    ESCAPE          reduce using rule 15 (constituent -> LETTER .)
+    $end            reduce using rule 15 (constituent -> LETTER .)
+
+
+state 10
+
+    (34) peculiar_identifier -> ellipsis .
+
+    $end            reduce using rule 34 (peculiar_identifier -> ellipsis .)
+
+
+state 11
+
+    (24) initial -> constituent .
+
+    DIGIT           reduce using rule 24 (initial -> constituent .)
+    PLUS            reduce using rule 24 (initial -> constituent .)
+    MINUS           reduce using rule 24 (initial -> constituent .)
+    PERIOD          reduce using rule 24 (initial -> constituent .)
+    AT_SYMBOL       reduce using rule 24 (initial -> constituent .)
+    UNICODE_CONSTITUENT reduce using rule 24 (initial -> constituent .)
+    LETTER          reduce using rule 24 (initial -> constituent .)
+    SPECIAL_INITIAL reduce using rule 24 (initial -> constituent .)
+    GREATER         reduce using rule 24 (initial -> constituent .)
+    ESCAPE          reduce using rule 24 (initial -> constituent .)
+    $end            reduce using rule 24 (initial -> constituent .)
+
+
+state 12
+
+    (7) inline_hex_escape -> ESCAPE . LETTER hex_scalar_value
+
+    LETTER          shift and go to state 27
+
+
+state 13
+
+    (0) S' -> identifier .
+
+
+
+state 14
+
+    (33) peculiar_identifier -> MINUS . GREATER subsequent_star
+    (36) peculiar_identifier -> MINUS .
+
+    GREATER         shift and go to state 28
+    $end            reduce using rule 36 (peculiar_identifier -> MINUS .)
+
+
+state 15
+
+    (25) initial -> special_initial .
+
+    DIGIT           reduce using rule 25 (initial -> special_initial .)
+    PLUS            reduce using rule 25 (initial -> special_initial .)
+    MINUS           reduce using rule 25 (initial -> special_initial .)
+    PERIOD          reduce using rule 25 (initial -> special_initial .)
+    AT_SYMBOL       reduce using rule 25 (initial -> special_initial .)
+    UNICODE_CONSTITUENT reduce using rule 25 (initial -> special_initial .)
+    LETTER          reduce using rule 25 (initial -> special_initial .)
+    SPECIAL_INITIAL reduce using rule 25 (initial -> special_initial .)
+    GREATER         reduce using rule 25 (initial -> special_initial .)
+    ESCAPE          reduce using rule 25 (initial -> special_initial .)
+    $end            reduce using rule 25 (initial -> special_initial .)
+
+
+state 16
+
+    (37) identifier -> initial subsequent_star .
+    (30) subsequent_star -> subsequent_star . subsequent
+    (27) subsequent -> . initial
+    (28) subsequent -> . special_subsequent
+    (29) subsequent -> . DIGIT
+    (24) initial -> . constituent
+    (25) initial -> . special_initial
+    (26) initial -> . inline_hex_escape
+    (8) special_subsequent -> . PLUS
+    (9) special_subsequent -> . MINUS
+    (10) special_subsequent -> . PERIOD
+    (11) special_subsequent -> . AT_SYMBOL
+    (14) constituent -> . UNICODE_CONSTITUENT
+    (15) constituent -> . LETTER
+    (12) special_initial -> . SPECIAL_INITIAL
+    (13) special_initial -> . GREATER
+    (7) inline_hex_escape -> . ESCAPE LETTER hex_scalar_value
+
+    $end            reduce using rule 37 (identifier -> initial subsequent_star .)
+    DIGIT           shift and go to state 17
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 24
+    PERIOD          shift and go to state 20
+    AT_SYMBOL       shift and go to state 23
+    UNICODE_CONSTITUENT shift and go to state 4
+    LETTER          shift and go to state 9
+    SPECIAL_INITIAL shift and go to state 5
+    GREATER         shift and go to state 3
+    ESCAPE          shift and go to state 12
+
+    inline_hex_escape              shift and go to state 1
+    subsequent                     shift and go to state 29
+    initial                        shift and go to state 19
+    special_subsequent             shift and go to state 22
+    constituent                    shift and go to state 11
+    special_initial                shift and go to state 15
+
+state 17
+
+    (29) subsequent -> DIGIT .
+
+    DIGIT           reduce using rule 29 (subsequent -> DIGIT .)
+    PLUS            reduce using rule 29 (subsequent -> DIGIT .)
+    MINUS           reduce using rule 29 (subsequent -> DIGIT .)
+    PERIOD          reduce using rule 29 (subsequent -> DIGIT .)
+    AT_SYMBOL       reduce using rule 29 (subsequent -> DIGIT .)
+    UNICODE_CONSTITUENT reduce using rule 29 (subsequent -> DIGIT .)
+    LETTER          reduce using rule 29 (subsequent -> DIGIT .)
+    SPECIAL_INITIAL reduce using rule 29 (subsequent -> DIGIT .)
+    GREATER         reduce using rule 29 (subsequent -> DIGIT .)
+    ESCAPE          reduce using rule 29 (subsequent -> DIGIT .)
+    $end            reduce using rule 29 (subsequent -> DIGIT .)
+
+
+state 18
+
+    (31) subsequent_star -> subsequent .
+
+    DIGIT           reduce using rule 31 (subsequent_star -> subsequent .)
+    PLUS            reduce using rule 31 (subsequent_star -> subsequent .)
+    MINUS           reduce using rule 31 (subsequent_star -> subsequent .)
+    PERIOD          reduce using rule 31 (subsequent_star -> subsequent .)
+    AT_SYMBOL       reduce using rule 31 (subsequent_star -> subsequent .)
+    UNICODE_CONSTITUENT reduce using rule 31 (subsequent_star -> subsequent .)
+    LETTER          reduce using rule 31 (subsequent_star -> subsequent .)
+    SPECIAL_INITIAL reduce using rule 31 (subsequent_star -> subsequent .)
+    GREATER         reduce using rule 31 (subsequent_star -> subsequent .)
+    ESCAPE          reduce using rule 31 (subsequent_star -> subsequent .)
+    $end            reduce using rule 31 (subsequent_star -> subsequent .)
+
+
+state 19
+
+    (27) subsequent -> initial .
+
+    DIGIT           reduce using rule 27 (subsequent -> initial .)
+    PLUS            reduce using rule 27 (subsequent -> initial .)
+    MINUS           reduce using rule 27 (subsequent -> initial .)
+    PERIOD          reduce using rule 27 (subsequent -> initial .)
+    AT_SYMBOL       reduce using rule 27 (subsequent -> initial .)
+    UNICODE_CONSTITUENT reduce using rule 27 (subsequent -> initial .)
+    LETTER          reduce using rule 27 (subsequent -> initial .)
+    SPECIAL_INITIAL reduce using rule 27 (subsequent -> initial .)
+    GREATER         reduce using rule 27 (subsequent -> initial .)
+    ESCAPE          reduce using rule 27 (subsequent -> initial .)
+    $end            reduce using rule 27 (subsequent -> initial .)
+
+
+state 20
+
+    (10) special_subsequent -> PERIOD .
+
+    DIGIT           reduce using rule 10 (special_subsequent -> PERIOD .)
+    PLUS            reduce using rule 10 (special_subsequent -> PERIOD .)
+    MINUS           reduce using rule 10 (special_subsequent -> PERIOD .)
+    PERIOD          reduce using rule 10 (special_subsequent -> PERIOD .)
+    AT_SYMBOL       reduce using rule 10 (special_subsequent -> PERIOD .)
+    UNICODE_CONSTITUENT reduce using rule 10 (special_subsequent -> PERIOD .)
+    LETTER          reduce using rule 10 (special_subsequent -> PERIOD .)
+    SPECIAL_INITIAL reduce using rule 10 (special_subsequent -> PERIOD .)
+    GREATER         reduce using rule 10 (special_subsequent -> PERIOD .)
+    ESCAPE          reduce using rule 10 (special_subsequent -> PERIOD .)
+    $end            reduce using rule 10 (special_subsequent -> PERIOD .)
+
+
+state 21
+
+    (8) special_subsequent -> PLUS .
+
+    DIGIT           reduce using rule 8 (special_subsequent -> PLUS .)
+    PLUS            reduce using rule 8 (special_subsequent -> PLUS .)
+    MINUS           reduce using rule 8 (special_subsequent -> PLUS .)
+    PERIOD          reduce using rule 8 (special_subsequent -> PLUS .)
+    AT_SYMBOL       reduce using rule 8 (special_subsequent -> PLUS .)
+    UNICODE_CONSTITUENT reduce using rule 8 (special_subsequent -> PLUS .)
+    LETTER          reduce using rule 8 (special_subsequent -> PLUS .)
+    SPECIAL_INITIAL reduce using rule 8 (special_subsequent -> PLUS .)
+    GREATER         reduce using rule 8 (special_subsequent -> PLUS .)
+    ESCAPE          reduce using rule 8 (special_subsequent -> PLUS .)
+    $end            reduce using rule 8 (special_subsequent -> PLUS .)
+
+
+state 22
+
+    (28) subsequent -> special_subsequent .
+
+    DIGIT           reduce using rule 28 (subsequent -> special_subsequent .)
+    PLUS            reduce using rule 28 (subsequent -> special_subsequent .)
+    MINUS           reduce using rule 28 (subsequent -> special_subsequent .)
+    PERIOD          reduce using rule 28 (subsequent -> special_subsequent .)
+    AT_SYMBOL       reduce using rule 28 (subsequent -> special_subsequent .)
+    UNICODE_CONSTITUENT reduce using rule 28 (subsequent -> special_subsequent .)
+    LETTER          reduce using rule 28 (subsequent -> special_subsequent .)
+    SPECIAL_INITIAL reduce using rule 28 (subsequent -> special_subsequent .)
+    GREATER         reduce using rule 28 (subsequent -> special_subsequent .)
+    ESCAPE          reduce using rule 28 (subsequent -> special_subsequent .)
+    $end            reduce using rule 28 (subsequent -> special_subsequent .)
+
+
+state 23
+
+    (11) special_subsequent -> AT_SYMBOL .
+
+    DIGIT           reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    PLUS            reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    MINUS           reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    PERIOD          reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    AT_SYMBOL       reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    UNICODE_CONSTITUENT reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    LETTER          reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    SPECIAL_INITIAL reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    GREATER         reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    ESCAPE          reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+    $end            reduce using rule 11 (special_subsequent -> AT_SYMBOL .)
+
+
+state 24
+
+    (9) special_subsequent -> MINUS .
+
+    DIGIT           reduce using rule 9 (special_subsequent -> MINUS .)
+    PLUS            reduce using rule 9 (special_subsequent -> MINUS .)
+    MINUS           reduce using rule 9 (special_subsequent -> MINUS .)
+    PERIOD          reduce using rule 9 (special_subsequent -> MINUS .)
+    AT_SYMBOL       reduce using rule 9 (special_subsequent -> MINUS .)
+    UNICODE_CONSTITUENT reduce using rule 9 (special_subsequent -> MINUS .)
+    LETTER          reduce using rule 9 (special_subsequent -> MINUS .)
+    SPECIAL_INITIAL reduce using rule 9 (special_subsequent -> MINUS .)
+    GREATER         reduce using rule 9 (special_subsequent -> MINUS .)
+    ESCAPE          reduce using rule 9 (special_subsequent -> MINUS .)
+    $end            reduce using rule 9 (special_subsequent -> MINUS .)
+
+
+state 25
+
+    (32) subsequent_star -> empty .
+
+    DIGIT           reduce using rule 32 (subsequent_star -> empty .)
+    PLUS            reduce using rule 32 (subsequent_star -> empty .)
+    MINUS           reduce using rule 32 (subsequent_star -> empty .)
+    PERIOD          reduce using rule 32 (subsequent_star -> empty .)
+    AT_SYMBOL       reduce using rule 32 (subsequent_star -> empty .)
+    UNICODE_CONSTITUENT reduce using rule 32 (subsequent_star -> empty .)
+    LETTER          reduce using rule 32 (subsequent_star -> empty .)
+    SPECIAL_INITIAL reduce using rule 32 (subsequent_star -> empty .)
+    GREATER         reduce using rule 32 (subsequent_star -> empty .)
+    ESCAPE          reduce using rule 32 (subsequent_star -> empty .)
+    $end            reduce using rule 32 (subsequent_star -> empty .)
+
+
+state 26
+
+    (23) ellipsis -> PERIOD PERIOD . PERIOD
+
+    PERIOD          shift and go to state 30
+
+
+state 27
+
+    (7) inline_hex_escape -> ESCAPE LETTER . hex_scalar_value
+    (6) hex_scalar_value -> . hex_digit_plus
+    (4) hex_digit_plus -> . hex_digit_plus hex_digit
+    (5) hex_digit_plus -> . hex_digit
+    (2) hex_digit -> . DIGIT
+    (3) hex_digit -> . LETTER
+
+    DIGIT           shift and go to state 33
+    LETTER          shift and go to state 35
+
+    hex_scalar_value               shift and go to state 34
+    hex_digit                      shift and go to state 32
+    hex_digit_plus                 shift and go to state 31
+
+state 28
+
+    (33) peculiar_identifier -> MINUS GREATER . subsequent_star
+    (30) subsequent_star -> . subsequent_star subsequent
+    (31) subsequent_star -> . subsequent
+    (32) subsequent_star -> . empty
+    (27) subsequent -> . initial
+    (28) subsequent -> . special_subsequent
+    (29) subsequent -> . DIGIT
+    (1) empty -> .
+    (24) initial -> . constituent
+    (25) initial -> . special_initial
+    (26) initial -> . inline_hex_escape
+    (8) special_subsequent -> . PLUS
+    (9) special_subsequent -> . MINUS
+    (10) special_subsequent -> . PERIOD
+    (11) special_subsequent -> . AT_SYMBOL
+    (14) constituent -> . UNICODE_CONSTITUENT
+    (15) constituent -> . LETTER
+    (12) special_initial -> . SPECIAL_INITIAL
+    (13) special_initial -> . GREATER
+    (7) inline_hex_escape -> . ESCAPE LETTER hex_scalar_value
+
+  ! shift/reduce conflict for DIGIT resolved as shift
+  ! shift/reduce conflict for PLUS resolved as shift
+  ! shift/reduce conflict for MINUS resolved as shift
+  ! shift/reduce conflict for PERIOD resolved as shift
+  ! shift/reduce conflict for AT_SYMBOL resolved as shift
+  ! shift/reduce conflict for UNICODE_CONSTITUENT resolved as shift
+  ! shift/reduce conflict for LETTER resolved as shift
+  ! shift/reduce conflict for SPECIAL_INITIAL resolved as shift
+  ! shift/reduce conflict for GREATER resolved as shift
+  ! shift/reduce conflict for ESCAPE resolved as shift
+    DIGIT           shift and go to state 17
+    $end            reduce using rule 1 (empty -> .)
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 24
+    PERIOD          shift and go to state 20
+    AT_SYMBOL       shift and go to state 23
+    UNICODE_CONSTITUENT shift and go to state 4
+    LETTER          shift and go to state 9
+    SPECIAL_INITIAL shift and go to state 5
+    GREATER         shift and go to state 3
+    ESCAPE          shift and go to state 12
+
+  ! DIGIT           [ reduce using rule 1 (empty -> .) ]
+  ! PLUS            [ reduce using rule 1 (empty -> .) ]
+  ! MINUS           [ reduce using rule 1 (empty -> .) ]
+  ! PERIOD          [ reduce using rule 1 (empty -> .) ]
+  ! AT_SYMBOL       [ reduce using rule 1 (empty -> .) ]
+  ! UNICODE_CONSTITUENT [ reduce using rule 1 (empty -> .) ]
+  ! LETTER          [ reduce using rule 1 (empty -> .) ]
+  ! SPECIAL_INITIAL [ reduce using rule 1 (empty -> .) ]
+  ! GREATER         [ reduce using rule 1 (empty -> .) ]
+  ! ESCAPE          [ reduce using rule 1 (empty -> .) ]
+
+    inline_hex_escape              shift and go to state 1
+    subsequent_star                shift and go to state 36
+    subsequent                     shift and go to state 18
+    initial                        shift and go to state 19
+    special_subsequent             shift and go to state 22
+    constituent                    shift and go to state 11
+    empty                          shift and go to state 25
+    special_initial                shift and go to state 15
+
+state 29
+
+    (30) subsequent_star -> subsequent_star subsequent .
+
+    DIGIT           reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    PLUS            reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    MINUS           reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    PERIOD          reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    AT_SYMBOL       reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    UNICODE_CONSTITUENT reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    LETTER          reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    SPECIAL_INITIAL reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    GREATER         reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    ESCAPE          reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+    $end            reduce using rule 30 (subsequent_star -> subsequent_star subsequent .)
+
+
+state 30
+
+    (23) ellipsis -> PERIOD PERIOD PERIOD .
+
+    $end            reduce using rule 23 (ellipsis -> PERIOD PERIOD PERIOD .)
+
+
+state 31
+
+    (6) hex_scalar_value -> hex_digit_plus .
+    (4) hex_digit_plus -> hex_digit_plus . hex_digit
+    (2) hex_digit -> . DIGIT
+    (3) hex_digit -> . LETTER
+
+  ! shift/reduce conflict for DIGIT resolved as shift
+  ! shift/reduce conflict for LETTER resolved as shift
+    PLUS            reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    MINUS           reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    PERIOD          reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    AT_SYMBOL       reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    UNICODE_CONSTITUENT reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    SPECIAL_INITIAL reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    GREATER         reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    ESCAPE          reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    $end            reduce using rule 6 (hex_scalar_value -> hex_digit_plus .)
+    DIGIT           shift and go to state 33
+    LETTER          shift and go to state 35
+
+  ! DIGIT           [ reduce using rule 6 (hex_scalar_value -> hex_digit_plus .) ]
+  ! LETTER          [ reduce using rule 6 (hex_scalar_value -> hex_digit_plus .) ]
+
+    hex_digit                      shift and go to state 37
+
+state 32
+
+    (5) hex_digit_plus -> hex_digit .
+
+    DIGIT           reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    LETTER          reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    PLUS            reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    MINUS           reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    PERIOD          reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    AT_SYMBOL       reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    UNICODE_CONSTITUENT reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    SPECIAL_INITIAL reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    GREATER         reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    ESCAPE          reduce using rule 5 (hex_digit_plus -> hex_digit .)
+    $end            reduce using rule 5 (hex_digit_plus -> hex_digit .)
+
+
+state 33
+
+    (2) hex_digit -> DIGIT .
+
+    DIGIT           reduce using rule 2 (hex_digit -> DIGIT .)
+    LETTER          reduce using rule 2 (hex_digit -> DIGIT .)
+    PLUS            reduce using rule 2 (hex_digit -> DIGIT .)
+    MINUS           reduce using rule 2 (hex_digit -> DIGIT .)
+    PERIOD          reduce using rule 2 (hex_digit -> DIGIT .)
+    AT_SYMBOL       reduce using rule 2 (hex_digit -> DIGIT .)
+    UNICODE_CONSTITUENT reduce using rule 2 (hex_digit -> DIGIT .)
+    SPECIAL_INITIAL reduce using rule 2 (hex_digit -> DIGIT .)
+    GREATER         reduce using rule 2 (hex_digit -> DIGIT .)
+    ESCAPE          reduce using rule 2 (hex_digit -> DIGIT .)
+    $end            reduce using rule 2 (hex_digit -> DIGIT .)
+
+
+state 34
+
+    (7) inline_hex_escape -> ESCAPE LETTER hex_scalar_value .
+
+    DIGIT           reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    PLUS            reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    MINUS           reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    PERIOD          reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    AT_SYMBOL       reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    UNICODE_CONSTITUENT reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    LETTER          reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    SPECIAL_INITIAL reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    GREATER         reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    ESCAPE          reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+    $end            reduce using rule 7 (inline_hex_escape -> ESCAPE LETTER hex_scalar_value .)
+
+
+state 35
+
+    (3) hex_digit -> LETTER .
+
+    DIGIT           reduce using rule 3 (hex_digit -> LETTER .)
+    LETTER          reduce using rule 3 (hex_digit -> LETTER .)
+    PLUS            reduce using rule 3 (hex_digit -> LETTER .)
+    MINUS           reduce using rule 3 (hex_digit -> LETTER .)
+    PERIOD          reduce using rule 3 (hex_digit -> LETTER .)
+    AT_SYMBOL       reduce using rule 3 (hex_digit -> LETTER .)
+    UNICODE_CONSTITUENT reduce using rule 3 (hex_digit -> LETTER .)
+    SPECIAL_INITIAL reduce using rule 3 (hex_digit -> LETTER .)
+    GREATER         reduce using rule 3 (hex_digit -> LETTER .)
+    ESCAPE          reduce using rule 3 (hex_digit -> LETTER .)
+    $end            reduce using rule 3 (hex_digit -> LETTER .)
+
+
+state 36
+
+    (33) peculiar_identifier -> MINUS GREATER subsequent_star .
+    (30) subsequent_star -> subsequent_star . subsequent
+    (27) subsequent -> . initial
+    (28) subsequent -> . special_subsequent
+    (29) subsequent -> . DIGIT
+    (24) initial -> . constituent
+    (25) initial -> . special_initial
+    (26) initial -> . inline_hex_escape
+    (8) special_subsequent -> . PLUS
+    (9) special_subsequent -> . MINUS
+    (10) special_subsequent -> . PERIOD
+    (11) special_subsequent -> . AT_SYMBOL
+    (14) constituent -> . UNICODE_CONSTITUENT
+    (15) constituent -> . LETTER
+    (12) special_initial -> . SPECIAL_INITIAL
+    (13) special_initial -> . GREATER
+    (7) inline_hex_escape -> . ESCAPE LETTER hex_scalar_value
+
+    $end            reduce using rule 33 (peculiar_identifier -> MINUS GREATER subsequent_star .)
+    DIGIT           shift and go to state 17
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 24
+    PERIOD          shift and go to state 20
+    AT_SYMBOL       shift and go to state 23
+    UNICODE_CONSTITUENT shift and go to state 4
+    LETTER          shift and go to state 9
+    SPECIAL_INITIAL shift and go to state 5
+    GREATER         shift and go to state 3
+    ESCAPE          shift and go to state 12
+
+    inline_hex_escape              shift and go to state 1
+    subsequent                     shift and go to state 29
+    initial                        shift and go to state 19
+    special_subsequent             shift and go to state 22
+    constituent                    shift and go to state 11
+    special_initial                shift and go to state 15
+
+state 37
+
+    (4) hex_digit_plus -> hex_digit_plus hex_digit .
+
+    DIGIT           reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    LETTER          reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    PLUS            reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    MINUS           reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    PERIOD          reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    AT_SYMBOL       reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    UNICODE_CONSTITUENT reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    SPECIAL_INITIAL reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    GREATER         reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    ESCAPE          reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+    $end            reduce using rule 4 (hex_digit_plus -> hex_digit_plus hex_digit .)
+
+WARNING: 
+WARNING: Conflicts:
+WARNING: 
+WARNING: shift/reduce conflict for DIGIT in state 6 resolved as shift
+WARNING: shift/reduce conflict for PLUS in state 6 resolved as shift
+WARNING: shift/reduce conflict for MINUS in state 6 resolved as shift
+WARNING: shift/reduce conflict for PERIOD in state 6 resolved as shift
+WARNING: shift/reduce conflict for AT_SYMBOL in state 6 resolved as shift
+WARNING: shift/reduce conflict for UNICODE_CONSTITUENT in state 6 resolved as shift
+WARNING: shift/reduce conflict for LETTER in state 6 resolved as shift
+WARNING: shift/reduce conflict for SPECIAL_INITIAL in state 6 resolved as shift
+WARNING: shift/reduce conflict for GREATER in state 6 resolved as shift
+WARNING: shift/reduce conflict for ESCAPE in state 6 resolved as shift
+WARNING: shift/reduce conflict for DIGIT in state 28 resolved as shift
+WARNING: shift/reduce conflict for PLUS in state 28 resolved as shift
+WARNING: shift/reduce conflict for MINUS in state 28 resolved as shift
+WARNING: shift/reduce conflict for PERIOD in state 28 resolved as shift
+WARNING: shift/reduce conflict for AT_SYMBOL in state 28 resolved as shift
+WARNING: shift/reduce conflict for UNICODE_CONSTITUENT in state 28 resolved as shift
+WARNING: shift/reduce conflict for LETTER in state 28 resolved as shift
+WARNING: shift/reduce conflict for SPECIAL_INITIAL in state 28 resolved as shift
+WARNING: shift/reduce conflict for GREATER in state 28 resolved as shift
+WARNING: shift/reduce conflict for ESCAPE in state 28 resolved as shift
+WARNING: shift/reduce conflict for DIGIT in state 31 resolved as shift
+WARNING: shift/reduce conflict for LETTER in state 31 resolved as shift
