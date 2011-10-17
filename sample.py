@@ -1,5 +1,6 @@
 import ply.lex as lex
 import ply.yacc as yacc
+
 import re
 import codecs, sys
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -87,7 +88,8 @@ tokens = (
     "PERIOD",
     "AT_SYMBOL",
     "GREATER",
-    "UNICODE_ZS"
+    "UNICODE_ZS",
+	"ESCAPE_QUOTE"
 )
 
 # UNICODE
@@ -103,6 +105,9 @@ def t_UNICODE_CONSTITUENT(t):
     ur'[\u0080-\uFFFF]'
     return t
 
+def t_ESCAPE_QUOTE(t):
+	ur'\"'
+	return t
 
 def t_PLUS(t):
     ur'\+'
@@ -174,10 +179,60 @@ def p_empty(p):
     'empty :'
     pass
 
+
+
+def p_character_tabulation(p):
+    'character_tabulation : ESCAPE LETTER'
+    if (str(p[2]) in ('T', 't')):
+        p[0] = str(p[1]) + str(p[2])
+
+# CHAR_TAB and character in category Zs (how do we do that?)
 #def p_intraline_whitespace(p):
 #    '''intraline_whitespace : TAB
 #                            | UNICODE_ZS'''
 #    p[0] = p[1]
+
+#def p_string(p) : 
+#    'string : string_element_star'
+#    p[0] = p[1]
+#
+#def p_string_element_star(p) : 
+#    '''string_element_star : empty  
+#                           | string_element_star string_element'''
+#    if (len(p) == 2) :
+#        p[0] = p[1]
+#    elif (len(p) == 3) :
+#        p[0] = p[1] + str(p[2])
+#
+## Note: character also includes inline_hex_escape
+#def p_string_element(p) :
+#    '''string_element : any_character
+#                      | character
+#                      | ESCAPE
+#                      | ESCAPE_QUOTE
+#                      | ESCAPE intraline_whitespace
+#                      '''
+#    if (len(p[0]) == 2): 
+#        p[0] = p[1]
+#    else:
+#        p[0] = str(p[1]) + p[2]
+#
+
+#def p_any_character(p) : 
+#    '''any_character : LETTER 
+#                     | DIGIT 
+#                     | SPECIAL_SUBSEQUENT
+#                     | SPECIAL_INITIAL
+#                     | CHARACTER_NAME'''
+#    p[0] = p[1]
+
+#def p_character(p):
+#    '''character : inline_hex_escape
+#                 | ESCAPE any_character'''
+#    if (len(p) == 2) : 
+#        p[0] = p[1]
+#    elif (len(p) == 3): 
+#        p[0] = str(p[1]) + p[2]
 
 def p_hex_digit(p):
     '''hex_digit : DIGIT
@@ -282,5 +337,14 @@ def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
 yacc.yacc(start='identifier')
+print "\nTesting character (includes inline_hex_escape)"
+print yacc.parse(ur'\x09')
+print yacc.parse(ur'\1')
+print yacc.parse(ur'\c')
+print yacc.parse(ur'\!')
+print yacc.parse(ur'\@')
+print yacc.parse(ur'\backspace')
 
-print yacc.parse(ur'\x09 \x09')
+print "\nTesting character_tabulation"
+print yacc.parse(ur'\t')
+

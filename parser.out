@@ -4,6 +4,7 @@ Unused terminals:
 
     UNICODE_ZS
     BOOLEAN
+<<<<<<< HEAD
 
 Grammar
 
@@ -46,6 +47,28 @@ Rule 35    peculiar_identifier -> PLUS
 Rule 36    peculiar_identifier -> MINUS
 Rule 37    identifier -> initial subsequent_star
 Rule 38    identifier -> peculiar_identifier
+=======
+    ESCAPE_QUOTE
+
+Grammar
+
+Rule 0     S' -> character
+Rule 1     empty -> <empty>
+Rule 2     character_tabulation -> ESCAPE LETTER
+Rule 3     any_character -> LETTER
+Rule 4     any_character -> DIGIT
+Rule 5     any_character -> SPECIAL_SUBSEQUENT
+Rule 6     any_character -> SPECIAL_INITIAL
+Rule 7     any_character -> CHARACTER_NAME
+Rule 8     character -> inline_hex_escape
+Rule 9     character -> ESCAPE any_character
+Rule 10    hex_digit -> DIGIT
+Rule 11    hex_digit -> LETTER
+Rule 12    hex_digit_plus -> hex_digit_plus hex_digit
+Rule 13    hex_digit_plus -> hex_digit
+Rule 14    hex_scalar_value -> hex_digit_plus
+Rule 15    inline_hex_escape -> ESCAPE LETTER hex_scalar_value
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
 
 Terminals, with rules where they appear
 
@@ -137,6 +160,18 @@ state 1
     ESCAPE          reduce using rule 26 (initial -> inline_hex_escape .)
     $end            reduce using rule 26 (initial -> inline_hex_escape .)
 
+    ESCAPE          shift and go to state 3
+
+    inline_hex_escape              shift and go to state 1
+    character                      shift and go to state 2
+
+    (38) identifier -> peculiar_identifier .
+
+    (8) character -> inline_hex_escape .
+
+    $end            reduce using rule 8 (character -> inline_hex_escape .)
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
+
 
 state 2
 
@@ -145,8 +180,10 @@ state 2
     $end            reduce using rule 38 (identifier -> peculiar_identifier .)
 
 
+
 state 3
 
+<<<<<<< HEAD
     (13) special_initial -> GREATER .
 
     DIGIT           reduce using rule 13 (special_initial -> GREATER .)
@@ -177,6 +214,29 @@ state 4
     GREATER         reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
     ESCAPE          reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
     $end            reduce using rule 14 (constituent -> UNICODE_CONSTITUENT .)
+=======
+    (9) character -> ESCAPE . any_character
+    (15) inline_hex_escape -> ESCAPE . LETTER hex_scalar_value
+    (3) any_character -> . LETTER
+    (4) any_character -> . DIGIT
+    (5) any_character -> . SPECIAL_SUBSEQUENT
+    (6) any_character -> . SPECIAL_INITIAL
+    (7) any_character -> . CHARACTER_NAME
+
+    LETTER          shift and go to state 7
+    DIGIT           shift and go to state 4
+    SPECIAL_SUBSEQUENT shift and go to state 6
+    SPECIAL_INITIAL shift and go to state 8
+    CHARACTER_NAME  shift and go to state 5
+
+state 5
+
+    (12) special_initial -> SPECIAL_INITIAL .
+
+    (4) any_character -> DIGIT .
+
+    $end            reduce using rule 4 (any_character -> DIGIT .)
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
 
 
 state 5
@@ -194,6 +254,9 @@ state 5
     GREATER         reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
     ESCAPE          reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
     $end            reduce using rule 12 (special_initial -> SPECIAL_INITIAL .)
+
+    $end            reduce using rule 7 (any_character -> CHARACTER_NAME .)
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
 
 
 state 6
@@ -267,12 +330,23 @@ state 7
 
     PERIOD          shift and go to state 26
 
+    $end            reduce using rule 3 (any_character -> LETTER .)
+    DIGIT           shift and go to state 12
+    LETTER          shift and go to state 14
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
+
+    hex_scalar_value               shift and go to state 13
+    hex_digit                      shift and go to state 11
+    hex_digit_plus                 shift and go to state 10
 
 state 8
 
     (35) peculiar_identifier -> PLUS .
 
     $end            reduce using rule 35 (peculiar_identifier -> PLUS .)
+
+    $end            reduce using rule 6 (any_character -> SPECIAL_INITIAL .)
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
 
 
 state 9
@@ -290,6 +364,9 @@ state 9
     GREATER         reduce using rule 15 (constituent -> LETTER .)
     ESCAPE          reduce using rule 15 (constituent -> LETTER .)
     $end            reduce using rule 15 (constituent -> LETTER .)
+
+    $end            reduce using rule 9 (character -> ESCAPE any_character .)
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
 
 
 state 10
@@ -315,6 +392,9 @@ state 11
     ESCAPE          reduce using rule 24 (initial -> constituent .)
     $end            reduce using rule 24 (initial -> constituent .)
 
+    $end            reduce using rule 14 (hex_scalar_value -> hex_digit_plus .)
+    DIGIT           shift and go to state 12
+    LETTER          shift and go to state 14
 
 state 12
 
@@ -322,6 +402,10 @@ state 12
 
     LETTER          shift and go to state 27
 
+    DIGIT           reduce using rule 13 (hex_digit_plus -> hex_digit .)
+    LETTER          reduce using rule 13 (hex_digit_plus -> hex_digit .)
+    $end            reduce using rule 13 (hex_digit_plus -> hex_digit .)
+>>>>>>> 5c6e5623b0091407909af4e79388b17c94ee9b1c
 
 state 13
 
