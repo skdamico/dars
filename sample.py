@@ -253,25 +253,25 @@ def p_hex_scalar_value(p):
 
 def p_inline_hex_escape(p):
     'inline_hex_escape : ESCAPE LETTER hex_scalar_value'
-    if p[2] == u'x' : p[0] = str(p[1]) + str(p[1]) + p[2]
+    if p[2] == 'x' : p[0] = str(p[1]) + str(p[2]) + p[3]
 
 def p_special_subsequent(p):
     '''special_subsequent : PLUS 
                           | MINUS 
                           | PERIOD 
                           | AT_SYMBOL'''
-    p[0] = p[1]
+    p[0] = str(p[1])
 
 def p_special_initial(p):
     '''special_initial : SPECIAL_INITIAL 
                        | GREATER'''
-    p[0] = p[1]
+    p[0] = str(p[1])
 
-# fix unicode_constituent
+# fix str_constituent
 def p_constituent(p):
     '''constituent : UNICODE_CONSTITUENT
                    | LETTER'''
-    p[0] = p[1]
+    p[0] = str(p[1])
 
 def p_character_types(p):
     '''character_types : special_subsequent
@@ -287,7 +287,7 @@ def p_character(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = str(p[1]) + str(p[2])
+        p[0] = str(p[1]) + p[2]
 
 def p_ellipsis(p):
     'ellipsis : PERIOD PERIOD PERIOD'
@@ -311,7 +311,7 @@ def p_subsequent_star(p):
                        | subsequent
                        | empty'''
     if len(p) == 3 : 
-        p[0] = p[1] + str(p[2])
+        p[0] = p[1] + p[2]
     else :
         p[0] = p[1]
 
@@ -329,22 +329,20 @@ def p_identifier(p):
     '''identifier : initial subsequent_star
                   | peculiar_identifier'''
     if len(p) == 3 : 
-        p[0] = p[1] + p[2]
+        p[0] = str(p[1]) + str(p[2])
     else : 
-        p[0] = p[1]
+        p[0] = str(p[1])
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
 yacc.yacc(start='identifier')
-print "\nTesting character (includes inline_hex_escape)"
 print yacc.parse(ur'\x09')
-print yacc.parse(ur'\1')
-print yacc.parse(ur'\c')
-print yacc.parse(ur'\!')
-print yacc.parse(ur'\@')
-print yacc.parse(ur'\backspace')
+print yacc.parse(ur'...')
+#print yacc.parse(ur'\!')
+#print yacc.parse(ur'\@')
+#print yacc.parse(ur'\backspace')
 
-print "\nTesting character_tabulation"
-print yacc.parse(ur'\t')
+#print "\nTesting character_tabulation"
+#print yacc.parse(ur'\t')
 
