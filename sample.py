@@ -18,12 +18,12 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
             # |  <operationSpec> <operationSpecs>
 
 # <operationSpec>  ::=  <operation> ":"            "->" <type>
-            # |  <operation> ":" <argTypes> "->" <type>
+            # |  <operation> ":" <arg_types> "->" <type>
 
 # <operation>  ::=  <identifier>
 
-# <argTypes>  ::=  <type>
-            # |  <type> "*" <argTypes>
+# <arg_types>  ::=  <type>
+            # |  <type> "*" <arg_types>
 
 # <type>  ::=  "int"
             # |  "boolean"
@@ -88,7 +88,14 @@ tokens = (
     "PERIOD",
     "AT_SYMBOL",
     "GREATER",
-    "UNICODE_ZS",
+	"ESCAPE_QUOTE",
+    "T_NAME",
+    "STAR",
+    "COLON",
+    "SEMICOLON",
+    "ADT",
+    "SIGNATURE",
+    "EQUATIONS",
     "UNICODE_PC",
     "UNICODE_ME",
     "UNICODE_CO",
@@ -108,11 +115,33 @@ tokens = (
     "UNICODE_SM",
     "UNICODE_SK",
     "UNICODE_SO",
-	"ESCAPE_QUOTE"
 )
 
-# UNICODE
+def t_COLON(t): 
+    ur'\:'
+    return t
 
+def t_SEMICOLON(t):
+    ur';'
+    return t
+
+def t_ADT(t):
+    ur'ADT'
+    return t
+
+def t_SIGNATURE(t):
+    ur'Signature'
+    return t
+
+def t_EQUATIONS(t):
+    ur'Equations'
+    return
+
+def t_T_NAME(t):
+    ur'int | boolean | character | string'
+    return t
+
+# UNICODE
 # Lu, Ll, Lt, Lm, Lo, Mn, Nl, No, Pd, Pc, Po, Sc, Sm, Sk, So, Co
 # Nd, Mc, Me
 
@@ -1883,6 +1912,10 @@ def t_GREATER(t):
     ur'>'
     return t
 
+def t_STAR(t):
+    ur'\*'
+    return t
+
 def t_ESCAPE(t):
     ur'\\'
     return t
@@ -1897,7 +1930,7 @@ def t_BOOLEAN(t):
     return t
 
 def t_SPECIAL_INITIAL(t):
-    ur'[!$%&*/:<=?^_~]'
+    ur'[!$%&/<=?^_~]'
     return t
 
 def t_LETTER(t):
@@ -1917,24 +1950,16 @@ def t_error(t):
 lexer = lex.lex(reflags=re.UNICODE)
 
 # Test it out
-data = ur'''
-A b 2  5  h+ A1 ...6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x -> < nulalarm
-'''
+#data = ur'''
+#A b 2  5  h+ A1 ...6 @ - ?@/:^$%<>=_~#t#y \u0081\uFFFF \x ->  nulalarm \"
+#'''
 
-# Give the lexer some input
-lexer.input(data)
 
-# Tokenize
-while True:
-    tok = lexer.token()
-    if not tok: break      # No more input
-    print tok
 
+# empty
 def p_empty(p):
     'empty :'
     pass
-
-
 
 def p_character_tabulation(p):
     'character_tabulation : ESCAPE LETTER'
@@ -2007,8 +2032,8 @@ def p_hex_scalar_value(p):
     p[0] = p[1]
 
 def p_inline_hex_escape(p):
-    'inline_hex_escape : ESCAPE LETTER hex_scalar_value'
-    if p[2] == 'x' : p[0] = str(p[1]) + str(p[2]) + p[3]
+    'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
+    if p[2] == 'x' : p[0] = str(p[1]) + str(p[2]) + p[3] + ";"
 
 def p_special_subsequent(p):
     '''special_subsequent : PLUS 
@@ -2019,7 +2044,9 @@ def p_special_subsequent(p):
 
 def p_special_initial(p):
     '''special_initial : SPECIAL_INITIAL 
-                       | GREATER'''
+                       | GREATER
+                       | STAR
+                       | COLON'''
     p[0] = str(p[1])
 
 # fix str_constituent
@@ -2080,6 +2107,13 @@ def p_peculiar_identifier(p):
     else :
         p[0] = p[1]
 
+
+# equations
+def p_equations(p): 
+    'equations : empty'
+    p[0] = p[1]
+
+# identifier 
 def p_identifier(p):
     '''identifier : initial subsequent_star
                   | peculiar_identifier'''
@@ -2088,16 +2122,100 @@ def p_identifier(p):
     else : 
         p[0] = str(p[1])
 
+# typename
+def p_typename(p):
+    'typename : identifier'
+    p[0] = p[1]
+
+# operation
+def p_operation(p):
+    'operation : identifier'
+    p[0] = p[1]
+
+# type
+def p_type(p): 
+    '''type : typename
+            | T_NAME'''
+    p[0] = str(p[1])
+
+# arg_types
+def p_arg_types(p):
+    '''arg_types : type STAR arg_types 
+                | type'''
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1] + "*" + p[3] 
+
+#operationSpec
+def p_operationSpec(p):
+    '''operationSpec : operation COLON arg_types MINUS GREATER type
+                     | operation COLON MINUS GREATER type'''
+    if len(p) == 6:
+        p[0] = p[1] + ":" + "-" + ">" + p[5]
+    else:
+        p[0] = p[1] + ":" + p[3] + "->" + p[6]
+
+# operationsSpecs
+def p_operationSpecs(p):
+    '''operationSpecs : operationSpec operationSpecs
+                      | operationSpec'''
+    if len(p) == 2: 
+        p[0] = p[1]
+    else:
+      p[0] = str(p[1]) + p[2]
+
+# signature
+def p_signature(p): 
+    'signature : ADT COLON typename operationSpec'
+    p[0] = "ADT:" + str(p[3]) + str(p[4])
+
+# signatures
+def p_signatures(p): 
+    '''signatures : signature signatures
+                  | signature'''
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = str(p[1]) + p[2]
+
+# input
+def p_input(p):
+    'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
+    p[0] = "Signature:" + str(p[3]) + "Equations:" + str(p[6])
+
+
+
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
-yacc.yacc(start='identifier')
-print yacc.parse(ur'\x09')
-print yacc.parse(ur'...')
-#print yacc.parse(ur'\!')
-#print yacc.parse(ur'\@')
-#print yacc.parse(ur'\backspace')
 
-#print "\nTesting character_tabulation"
-#print yacc.parse(ur'\t')
+#Checks to make sure an input file is given
+if len(sys.argv) < 2:
+    sys.exit('Usage: %s file-name' % sys.argv[0])
+
+#Retrieves input file name
+fileName = sys.argv[1]
+
+#Opens input file
+file = codecs.open(fileName, "r", "utf-8")
+numLines = 0
+
+for line in file:
+    yacc.yacc(start='operationSpec')
+    # Do stuff here
+    lexer.input(line)
+
+    while True:
+        tok = lexer.token()
+        if not tok: break      # No more input
+        print tok
+    
+    yada = yacc.parse(line)
+    print yada
+
+file.close()
+
+
+
 
