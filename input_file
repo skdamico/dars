@@ -1,1 +1,1 @@
-t: s -> int
+stri: int * boo -> char
