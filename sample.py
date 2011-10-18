@@ -82,13 +82,13 @@ tokens = (
     "BOOLEAN",
     "CHARACTER_NAME",
     "ESCAPE",
+    "ARROW",
     "PLUS",
     "MINUS",
     "PERIOD",
     "AT_SYMBOL",
-    "GREATER",
 	"ESCAPE_QUOTE",
-    "T_NAME",
+    "TYPENAME",
     "STAR",
     "COLON",
     "SEMICOLON",
@@ -133,8 +133,12 @@ def t_ADT(t):
     ur'ADT'
     return t
 
-def t_T_NAME(t):
+def t_TYPENAME(t):
     ur'int | boolean | string | character'
+    return t
+
+def t_ARROW(t):
+    ur'->'
     return t
 
 def t_COLON(t): 
@@ -165,10 +169,6 @@ def t_AT_SYMBOL(t):
     ur'@'
     return t
 
-def t_GREATER(t):
-    ur'>'
-    return t
-
 def t_STAR(t):
     ur'\*'
     return t
@@ -182,7 +182,7 @@ def t_BOOLEAN(t):
     return t
 
 def t_SPECIAL_INITIAL(t):
-    ur'[!$%&/<=?^_~]'
+    ur'[!$%&/<=?>^_~]'
     return t
 
 def t_LETTER(t):
@@ -297,16 +297,10 @@ int
 #    print tok
 
 
-
-# empty
-def p_empty(p):
-    'empty :'
-    pass
-
-def p_character_tabulation(p):
-    'character_tabulation : ESCAPE LETTER'
-    if (str(p[2]) in ('T', 't')):
-        p[0] = ('tabulation-character', str(p[1]) + str(p[2]))
+#def p_character_tabulation(p):
+#    'character_tabulation : ESCAPE LETTER'
+#    if (str(p[2]) in ('T', 't')):
+#        p[0] = ('tabulation-character', r'\t')
 
 # CHAR_TAB and character in category Zs (how do we do that?)
 #def p_intraline_whitespace(p):
@@ -356,78 +350,85 @@ def p_character_tabulation(p):
 #    elif (len(p) == 3): 
 #        p[0] = str(p[1]) + p[2]
 
-def p_hex_digit(p):
-    '''hex_digit : DIGIT
-                 | LETTER'''
-    p[0] = ('hex-digit', p[1])
+# input
+def p_input(p):
+    'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
+    p[0] = ('input', "Signature:", p[3], "Equations:", p[6])
 
-def p_hex_digit_plus(p):
-    '''hex_digit_plus : hex_digit_plus hex_digit
-                      | hex_digit'''
-    if (len(p) == 2) : 
-        p[0] = str(p[1])
-    elif (len(p) == 3) : 
-        p[0] = ('hex-digit-plus', p[1], str(p[2]))
-
-def p_hex_scalar_value(p):
-    'hex_scalar_value : hex_digit_plus'
-    p[0] = ('hex-scalar-value', p[1])
-
-def p_inline_hex_escape(p):
-    'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
-    if p[2] == 'x' : p[0] = ('inline-hex-escape', str(p[1]) + str(p[2]), p[3], ";")
-
-def p_special_subsequent(p):
-    '''special_subsequent : PLUS 
-                          | PERIOD
-                          | MINUS
-                          | AT_SYMBOL'''
-    p[0] = ('special-subsequent', str(p[1]))
-
-def p_special_initial(p):
-    '''special_initial : SPECIAL_INITIAL 
-                       | GREATER
-                       | STAR
-                       | COLON'''
-    p[0] = ('special-initial', str(p[1]))
-
-# fix str_constituent
-def p_constituent(p):
-    '''constituent : LETTER'''
-    p[0] = ('constituent', str(p[1]))
-
-def p_character_types(p):
-    '''character_types : special_subsequent
-                       | special_initial
-                       | DIGIT
-                       | LETTER
-                       | CHARACTER_NAME'''
-    p[0] = ('character-types', p[1])
-
-def p_character(p):
-    '''character : inline_hex_escape
-                 | ESCAPE character_types'''
+# signatures
+def p_signatures(p): 
+    '''signatures : signatures signature
+                  | signature'''
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] = ('signatures', p[1])
     else:
-        p[0] = ('character', str(p[1]), p[2])
+        p[0] = ('signatures', p[1], p[2])
 
-def p_ellipsis(p):
-    'ellipsis : PERIOD PERIOD PERIOD'
-    p[0] = ('ellipsis', p[1], p[2], p[3])
+# signature
+def p_signature(p): 
+    'signature : ADT COLON typename operation_specs'
+    p[0] = ('signature', 'ADT:', p[3], p[4])
 
-def p_initial(p):
-    '''initial : constituent 
-               | special_initial 
-               | inline_hex_escape'''
-    p[0] = ('initial', p[1])
+# operationsSpecs
+def p_operation_specs(p):
+    '''operation_specs : operation_spec operation_specs
+                       | operation_spec'''
+    if len(p) == 2: 
+        p[0] = ('operation-specs', p[1])
+    else:
+        p[0] = ('operation-specs', p[1], p[2])
 
-# ADD UNICODE - Nd, Mc, Me
-def p_subsequent(p):
-    '''subsequent : initial
-                  | special_subsequent
-                  | DIGIT'''
-    p[0] = ('subsequent', p[1])
+
+#operationSpec
+def p_operation_spec(p):
+    '''operation_spec : operation COLON arg_types ARROW type
+                      | operation COLON ARROW type'''
+    if len(p) == 6:
+        p[0] = ('operation-spec', p[1], ':', p[3], '->', p[5])
+    else:
+        p[0] = ('operation-spec', p[1], ':', '->', p[4])
+
+# operation
+def p_operation(p):
+    'operation : identifier'
+    p[0] = ('operation', p[1])
+
+# arg_types
+def p_arg_types(p):
+    '''arg_types : arg_types STAR type
+                 | type'''
+    if len(p) == 2:
+        p[0] = ('arg-types', p[1])
+    else:
+        p[0] = ('arg-types', p[1], '*', p[3]) 
+
+# type
+def p_type(p): 
+    '''type : typename
+            | TYPENAME'''
+    p[0] = ('type', p[1])
+
+# typename
+def p_typename(p):
+    'typename : identifier'
+    p[0] = ('typename', p[1])
+
+# identifier 
+def p_identifier(p):
+    '''identifier : initial subsequent_star
+                  | peculiar_identifier'''
+    if len(p) == 3 : 
+        p[0] = ('identifier', p[1], p[2])
+    else : 
+        p[0] = ('identifier', p[1])
+
+def p_peculiar_identifier(p):
+    '''peculiar_identifier : ARROW subsequent_star 
+                           | ellipsis'''
+    if len(p) == 4 :
+        p[0] = ('peculiar-identifier', '->', p[3])
+    else :
+        p[0] = ('peculiar-identifier', p[1])
 
 def p_subsequent_star(p):
     '''subsequent_star : subsequent_star subsequent
@@ -438,90 +439,70 @@ def p_subsequent_star(p):
     else :
         p[0] = ('subsequent-star', p[1])
 
-def p_peculiar_identifier(p):
-    '''peculiar_identifier : MINUS GREATER subsequent_star 
-                           | ellipsis'''
-    if len(p) == 4 :
-        p[0] = ('peculiar-identifier', str(p[1]) + str(p[2]), p[3])
-    else :
-        p[0] = ('peculiar-identifier', p[1])
+# ADD UNICODE - Nd, Mc, Me
+def p_subsequent(p):
+    '''subsequent : initial
+                  | special_subsequent
+                  | DIGIT'''
+    p[0] = ('subsequent', p[1])
 
+def p_initial(p):
+    '''initial : constituent 
+               | special_initial 
+               | inline_hex_escape'''
+    p[0] = ('initial', p[1])
+
+def p_ellipsis(p):
+    'ellipsis : PERIOD PERIOD PERIOD'
+    p[0] = ('ellipsis', '...')
+
+
+def p_special_subsequent(p):
+    '''special_subsequent : PLUS 
+                          | PERIOD
+                          | MINUS
+                          | AT_SYMBOL'''
+    p[0] = ('special-subsequent', p[1])
+
+def p_special_initial(p):
+    '''special_initial : SPECIAL_INITIAL''' 
+    p[0] = ('special-initial', p[1])
+
+# fix str_constituent
+def p_constituent(p):
+    '''constituent : LETTER'''
+    p[0] = ('constituent', p[1])
+
+def p_inline_hex_escape(p):
+    'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
+    if p[2] == 'x' : p[0] = ('inline-hex-escape', r"\x", p[3], ";")
+
+def p_hex_scalar_value(p):
+    'hex_scalar_value : hex_digit_plus'
+    p[0] = ('hex-scalar-value', p[1])
+
+def p_hex_digit_plus(p):
+    '''hex_digit_plus : hex_digit_plus hex_digit
+                      | hex_digit'''
+    if (len(p) == 2) : 
+        p[0] = ('hex-digit-plus', p[1])
+    elif (len(p) == 3) : 
+        p[0] = ('hex-digit-plus', p[1], p[2])
+
+def p_hex_digit(p):
+    '''hex_digit : DIGIT
+                 | LETTER'''
+    p[0] = ('hex-digit', p[1])
 
 # equations
 def p_equations(p): 
     'equations : empty'
     p[0] = ('equations', p[1])
 
-# identifier 
-def p_identifier(p):
-    '''identifier : initial subsequent_star
-                  | peculiar_identifier'''
-    if len(p) == 3 : 
-        p[0] = ('identifier', str(p[1]) + str(p[2]))
-    else : 
-        p[0] = ('identifier', str(p[1]))
-
-# typename
-def p_typename(p):
-    'typename : identifier'
-    p[0] = ('typename', p[1])
-
-# operation
-def p_operation(p):
-    'operation : identifier'
-    p[0] = ('operation', p[1])
-
-# type
-def p_type(p): 
-    '''type : typename
-            | T_NAME'''
-    p[0] = ('type', p[1])
-
-# arg_types
-def p_arg_types(p):
-    '''arg_types : type STAR arg_types
-                 | type'''
-    if len(p) == 2:
-        p[0] = ('arg-types', p[1])
-    else:
-        p[0] = ('arg-types', p[1], str(p[2]), p[3])  
-
-#operationSpec
-def p_operation_spec(p):
-    '''operation_spec : operation COLON arg_types MINUS GREATER type
-                      | operation COLON type'''
-    if len(p) == 7:
-        p[0] = ('operation-spec', p[1], str(p[2]), p[3], str(p[4]) + str(p[5]), p[6])
-    else:
-        p[0] = ('operation-spec', p[1], str(p[2]), p[3])
-
-# operationsSpecs
-def p_operationSpecs(p):
-    '''operation_specs : operation_spec operation_specs
-                      | operation_spec'''
-    if len(p) == 2: 
-        p[0] = ('operationSpecs', str(p[1]))
-    else:
-        p[0] = ('operationSpecs', str(p[1]), p[2])
-
-# signature
-def p_signature(p): 
-    'signature : ADT COLON typename operation_specs'
-    p[0] = ('signature', "ADT:" + str(p[3]) + str(p[4]))
-
-# signatures
-def p_signatures(p): 
-    '''signatures : signature signatures
-                  | signature'''
-    if len(p) == 2:
-        p[0] = ('signatures', p[1])
-    else:
-        p[0] = ('signatures', str(p[1]), p[2])
-
-# input
-def p_input(p):
-    'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
-    p[0] = ('input', "Signature:" + str(p[3]) + "Equations:" + str(p[6]))
+# empty
+def p_empty(p):
+    'empty :'
+    pass
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
@@ -538,7 +519,7 @@ file = codecs.open(fileName, "r", "utf-8")
 numLines = 0
 
 for line in file:
-    yacc.yacc(start='arg_types')
+    yacc.yacc(start='operation_specs')
     # Do stuff here
     lexer.input(line)
 
