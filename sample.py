@@ -284,7 +284,7 @@ def t_error(t):
     print "Illegal character '%s'" % t.value[0]
     t.lexer.skip(1)
 
-lexer = lex.lex(reflags=re.UNICODE,debug=True)
+lexer = lex.lex(reflags=re.UNICODE)
 
 # Test it out
 data = ur'''
@@ -367,7 +367,7 @@ def p_hex_digit_plus(p):
     if (len(p) == 2) : 
         p[0] = str(p[1])
     elif (len(p) == 3) : 
-        p[0] = ('hex-digit-plus', p[1] + str(p[2]))
+        p[0] = ('hex-digit-plus', p[1], str(p[2]))
 
 def p_hex_scalar_value(p):
     'hex_scalar_value : hex_digit_plus'
@@ -375,7 +375,7 @@ def p_hex_scalar_value(p):
 
 def p_inline_hex_escape(p):
     'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
-    if p[2] == 'x' : ('inline-hex-escape', p[0] = str(p[1]) + str(p[2]) + p[3] + ";")
+    if p[2] == 'x' : p[0] = ('inline-hex-escape', str(p[1]) + str(p[2]), p[3], ";")
 
 def p_special_subsequent(p):
     '''special_subsequent : PLUS 
@@ -410,11 +410,11 @@ def p_character(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = ('character', str(p[1]) + p[2])
+        p[0] = ('character', str(p[1]), p[2])
 
 def p_ellipsis(p):
     'ellipsis : PERIOD PERIOD PERIOD'
-    p[0] = ('ellipsis', p[1] + p[2] + p[3])
+    p[0] = ('ellipsis', p[1], p[2], p[3])
 
 def p_initial(p):
     '''initial : constituent 
@@ -434,7 +434,7 @@ def p_subsequent_star(p):
                        | subsequent
                        | empty'''
     if len(p) == 3 : 
-        p[0] = ('subsequent-star', p[1] + p[2])
+        p[0] = ('subsequent-star', p[1], p[2])
     else :
         p[0] = ('subsequent-star', p[1])
 
@@ -442,7 +442,7 @@ def p_peculiar_identifier(p):
     '''peculiar_identifier : MINUS GREATER subsequent_star 
                            | ellipsis'''
     if len(p) == 4 :
-        p[0] = ('peculiar-identifier', str(p[1]) + str(p[2]) + p[3])
+        p[0] = ('peculiar-identifier', str(p[1]) + str(p[2]), p[3])
     else :
         p[0] = ('peculiar-identifier', p[1])
 
@@ -484,16 +484,16 @@ def p_arg_types(p):
     if len(p) == 2:
         p[0] = ('arg-types', p[1])
     else:
-        p[0] = ('arg-types', p[1] + str(p[2]) + p[3])
+        p[0] = ('arg-types', p[1], str(p[2]), p[3])  
 
 #operationSpec
 def p_operation_spec(p):
     '''operation_spec : operation COLON arg_types MINUS GREATER type
                       | operation COLON type'''
     if len(p) == 7:
-        p[0] = ('operation-spec', p[1] + str(p[2]) + p[3] + str(p[4]) + str(p[5]) + p[6])
+        p[0] = ('operation-spec', p[1], str(p[2]), p[3], str(p[4]) + str(p[5]), p[6])
     else:
-        p[0] = ('operation-spec', p[1] + str(p[2]) + p[3])
+        p[0] = ('operation-spec', p[1], str(p[2]), p[3])
 
 # operationsSpecs
 def p_operationSpecs(p):
@@ -502,7 +502,7 @@ def p_operationSpecs(p):
     if len(p) == 2: 
         p[0] = ('operationSpecs', str(p[1]))
     else:
-        p[0] = ('operationSpecs', str(p[1]) + p[2])
+        p[0] = ('operationSpecs', str(p[1]), p[2])
 
 # signature
 def p_signature(p): 
@@ -516,7 +516,7 @@ def p_signatures(p):
     if len(p) == 2:
         p[0] = ('signatures', p[1])
     else:
-        p[0] = ('signatures', str(p[1]) + p[2])
+        p[0] = ('signatures', str(p[1]), p[2])
 
 # input
 def p_input(p):
@@ -538,7 +538,7 @@ file = codecs.open(fileName, "r", "utf-8")
 numLines = 0
 
 for line in file:
-    yacc.yacc(start='operation',debug=True)
+    yacc.yacc(start='arg_types')
     # Do stuff here
     lexer.input(line)
 
