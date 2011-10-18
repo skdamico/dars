@@ -306,7 +306,7 @@ def p_empty(p):
 def p_character_tabulation(p):
     'character_tabulation : ESCAPE LETTER'
     if (str(p[2]) in ('T', 't')):
-        p[0] = str(p[1]) + str(p[2])
+        p[0] = ('tabulation-character', str(p[1]) + str(p[2]))
 
 # CHAR_TAB and character in category Zs (how do we do that?)
 #def p_intraline_whitespace(p):
@@ -359,7 +359,7 @@ def p_character_tabulation(p):
 def p_hex_digit(p):
     '''hex_digit : DIGIT
                  | LETTER'''
-    p[0] = p[1]
+    p[0] = ('hex-digit', p[1])
 
 def p_hex_digit_plus(p):
     '''hex_digit_plus : hex_digit_plus hex_digit
@@ -367,34 +367,34 @@ def p_hex_digit_plus(p):
     if (len(p) == 2) : 
         p[0] = str(p[1])
     elif (len(p) == 3) : 
-        p[0] = p[1] + str(p[2])
+        p[0] = ('hex-digit-plus', p[1] + str(p[2]))
 
 def p_hex_scalar_value(p):
     'hex_scalar_value : hex_digit_plus'
-    p[0] = p[1]
+    p[0] = ('hex-scalar-value', p[1])
 
 def p_inline_hex_escape(p):
     'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
-    if p[2] == 'x' : p[0] = str(p[1]) + str(p[2]) + p[3] + ";"
+    if p[2] == 'x' : ('inline-hex-escape', p[0] = str(p[1]) + str(p[2]) + p[3] + ";")
 
 def p_special_subsequent(p):
     '''special_subsequent : PLUS 
                           | PERIOD
                           | MINUS
                           | AT_SYMBOL'''
-    p[0] = str(p[1])
+    p[0] = ('special-subsequent', str(p[1]))
 
 def p_special_initial(p):
     '''special_initial : SPECIAL_INITIAL 
                        | GREATER
                        | STAR
                        | COLON'''
-    p[0] = str(p[1])
+    p[0] = ('special-initial', str(p[1]))
 
 # fix str_constituent
 def p_constituent(p):
     '''constituent : LETTER'''
-    p[0] = str(p[1])
+    p[0] = ('constituent', str(p[1]))
 
 def p_character_types(p):
     '''character_types : special_subsequent
@@ -402,7 +402,7 @@ def p_character_types(p):
                        | DIGIT
                        | LETTER
                        | CHARACTER_NAME'''
-    p[0] = p[1]
+    p[0] = ('character-types', p[1])
 
 def p_character(p):
     '''character : inline_hex_escape
@@ -410,118 +410,118 @@ def p_character(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = str(p[1]) + p[2]
+        p[0] = ('character', str(p[1]) + p[2])
 
 def p_ellipsis(p):
     'ellipsis : PERIOD PERIOD PERIOD'
-    p[0] = p[1] + p[2] + p[3]
+    p[0] = ('ellipsis', p[1] + p[2] + p[3])
 
 def p_initial(p):
     '''initial : constituent 
                | special_initial 
                | inline_hex_escape'''
-    p[0] = p[1]
+    p[0] = ('initial', p[1])
 
 # ADD UNICODE - Nd, Mc, Me
 def p_subsequent(p):
     '''subsequent : initial
                   | special_subsequent
                   | DIGIT'''
-    p[0] = p[1]
+    p[0] = ('subsequent', p[1])
 
 def p_subsequent_star(p):
     '''subsequent_star : subsequent_star subsequent
                        | subsequent
                        | empty'''
     if len(p) == 3 : 
-        p[0] = p[1] + p[2]
+        p[0] = ('subsequent-star', p[1] + p[2])
     else :
-        p[0] = p[1]
+        p[0] = ('subsequent-star', p[1])
 
 def p_peculiar_identifier(p):
     '''peculiar_identifier : MINUS GREATER subsequent_star 
                            | ellipsis'''
     if len(p) == 4 :
-        p[0] = str(p[1]) + str(p[2]) + p[3]
+        p[0] = ('peculiar-identifier', str(p[1]) + str(p[2]) + p[3])
     else :
-        p[0] = p[1]
+        p[0] = ('peculiar-identifier', p[1])
 
 
 # equations
 def p_equations(p): 
     'equations : empty'
-    p[0] = p[1]
+    p[0] = ('equations', p[1])
 
 # identifier 
 def p_identifier(p):
     '''identifier : initial subsequent_star
                   | peculiar_identifier'''
     if len(p) == 3 : 
-        p[0] = str(p[1]) + str(p[2])
+        p[0] = ('identifier', str(p[1]) + str(p[2]))
     else : 
-        p[0] = str(p[1])
+        p[0] = ('identifier', str(p[1]))
 
 # typename
 def p_typename(p):
     'typename : identifier'
-    p[0] = p[1]
+    p[0] = ('typename', p[1])
 
 # operation
 def p_operation(p):
     'operation : identifier'
-    p[0] = p[1]
+    p[0] = ('operation', p[1])
 
 # type
 def p_type(p): 
     '''type : typename
             | T_NAME'''
-    p[0] = p[1]
+    p[0] = ('type', p[1])
 
 # arg_types
 def p_arg_types(p):
     '''arg_types : type STAR arg_types
                  | type'''
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] = ('arg-types', p[1])
     else:
-        p[0] = p[1] + str(p[2]) + p[3] 
+        p[0] = ('arg-types', p[1] + str(p[2]) + p[3])
 
 #operationSpec
 def p_operation_spec(p):
     '''operation_spec : operation COLON arg_types MINUS GREATER type
                       | operation COLON type'''
     if len(p) == 7:
-        p[0] = p[1] + str(p[2]) + p[3] + str(p[4]) + str(p[5]) + p[6]
+        p[0] = ('operation-spec', p[1] + str(p[2]) + p[3] + str(p[4]) + str(p[5]) + p[6])
     else:
-        p[0] = p[1] + str(p[2]) + p[3]
+        p[0] = ('operation-spec', p[1] + str(p[2]) + p[3])
 
 # operationsSpecs
 def p_operationSpecs(p):
     '''operation_specs : operation_spec operation_specs
                       | operation_spec'''
     if len(p) == 2: 
-        p[0] = str(p[1])
+        p[0] = ('operationSpecs', str(p[1]))
     else:
-        p[0] = str(p[1]) + p[2]
+        p[0] = ('operationSpecs', str(p[1]) + p[2])
 
 # signature
 def p_signature(p): 
     'signature : ADT COLON typename operation_specs'
-    p[0] = "ADT:" + str(p[3]) + str(p[4])
+    p[0] = ('signature', "ADT:" + str(p[3]) + str(p[4]))
 
 # signatures
 def p_signatures(p): 
     '''signatures : signature signatures
                   | signature'''
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] = ('signatures', p[1])
     else:
-        p[0] = str(p[1]) + p[2]
+        p[0] = ('signatures', str(p[1]) + p[2])
 
 # input
 def p_input(p):
     'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
-    p[0] = "Signature:" + str(p[3]) + "Equations:" + str(p[6])
+    p[0] = ('input', "Signature:" + str(p[3]) + "Equations:" + str(p[6]))
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
