@@ -1,5 +1,5 @@
-import lex
-import yacc
+import ply.lex as lex
+import ply.yacc as yacc
 
 import re
 import codecs, sys
@@ -353,7 +353,7 @@ int
 
 def p_input(p):
     'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
-    p[0] = ('input', "Signature:", p[3], "Equations:", p[6])
+    p[0] = ('input', ("Signature:", p[3], "Equations:", p[6]))
 
 def p_signatures(p): 
     '''signatures : signatures signature
@@ -361,11 +361,11 @@ def p_signatures(p):
     if len(p) == 2:
         p[0] = ('signatures', p[1])
     else:
-        p[0] = ('signatures', p[1], p[2])
+        p[0] = ('signatures', (p[1], p[2]))
 
 def p_signature(p): 
     'signature : ADT COLON typename operation_specs'
-    p[0] = ('signature', 'ADT:', p[3], p[4])
+    p[0] = ('signature', ('ADT:', p[3], p[4]))
 
 def p_operation_specs(p):
     '''operation_specs : operation_specs operation_spec
@@ -373,16 +373,16 @@ def p_operation_specs(p):
     if len(p) == 2: 
         p[0] = ('operation-specs', p[1])
     else:
-        p[0] = ('operation-specs', p[1], p[2])
+        p[0] = ('operation-specs', (p[1], p[2]))
 
 
 def p_operation_spec(p):
     '''operation_spec : operation COLON arg_types ARROW type
-                      | operation COLON ARROW type'''
+                      | operation COLON type'''
     if len(p) == 6:
         p[0] = ('operation-spec', (p[1], ':', p[3], '->', p[5]))
     else:
-        p[0] = ('operation-spec', (p[1], ': ->', p[4]))
+        p[0] = ('operation-spec', (p[1], ':', p[3]))
 
 def p_operation(p):
     'operation : identifier'
@@ -394,7 +394,7 @@ def p_arg_types(p):
     if len(p) == 2:
         p[0] = ('arg-types', p[1])
     else:
-        p[0] = ('arg-types', p[1], '*', p[3]) 
+        p[0] = ('arg-types', (p[1], '*', p[3]))
 
 # type
 def p_type(p): 
@@ -412,7 +412,7 @@ def p_identifier(p):
     '''identifier : initial subsequent_star
                   | peculiar_identifier'''
     if len(p) == 3 : 
-        p[0] = ('identifier', p[1], p[2])
+        p[0] = ('identifier', (p[1], p[2]))
     else : 
         p[0] = ('identifier', p[1])
 
@@ -430,7 +430,7 @@ def p_subsequent_star(p):
     '''subsequent_star : subsequent_star subsequent
                        | empty'''
     if len(p) == 3 : 
-        p[0] = ('subsequent-star', p[1], p[2])
+        p[0] = ('subsequent-star', (p[1], p[2]))
     else :
         p[0] = ('subsequent-star', p[1])
 
@@ -470,7 +470,7 @@ def p_constituent(p):
 
 def p_inline_hex_escape(p):
     'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
-    if p[2] == 'x' : p[0] = ('inline-hex-escape', r"\x", p[3], ";")
+    if p[2] == 'x' : p[0] = ('inline-hex-escape', (r"\x", p[3], ";"))
 
 def p_hex_scalar_value(p):
     'hex_scalar_value : hex_digit hex_digit_star'
@@ -480,7 +480,7 @@ def p_hex_digit_star(p):
     '''hex_digit_star : hex_digit_star hex_digit
                       | empty'''
     if len(p) == 3 : 
-        p[0] = ('hex-digit-star', p[1], p[2])
+        p[0] = ('hex-digit-star', (p[1], p[2]))
     else :
         p[0] = ('hex-digit-star', p[1])
 
