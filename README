@@ -1,0 +1,83 @@
+************************************************************
+***  DOCUMENTATION FOR CS4500 ASSIGNMENT 4 (Version 1)   *** 
+************************************************************
+
+****************************************
+***    TEAM CONTACT INFORMATION      ***
+****************************************
+
+Alex Chen           - ouloboros@gmail.com 
+Stefano D'Amico     - skdamico@gmail.com
+Dung Nguyen         - dnguyen1022@gmail.com
+Rhistina Revilla    - rhistina@gmail.com
+
+Please feel free to contact any of the above email address(es). 
+
+****************************************
+***     FILES IN THIS DIRECTORY     ***
+****************************************
+
+This directory contains the following files and subdirectories:
+
+    README                  - this file
+    main.py                 - generates valid test expressions on input ADT
+                              using the generated lexer and parser objects
+    cs4500                  - high level script that calls main.py
+                              followed by input and output arguments
+    lex.py                  - Python module for PLY lexer
+    yacc.py                 - Python module for PLY parser 
+
+****************************************
+***          ACKNOWLEDGEMENTS       ***
+****************************************
+
+Thank you to David M. Beazley (Dabeaz LLC), creator of PLY parser generator 
+for Python. 
+
+    PLY (Python Lex-Yacc)                   Version 3.4
+    Copyright (C) 2001-2011,
+    David M. Beazley (Dabeaz LLC)
+    All rights reserved.
+
+For more documentation on this parser generator:
+    
+    http://www.dabeaz.com/ply/ply.html
+
+****************************************
+***           REQUIREMENTS           ***
+****************************************
+
+CS4500 Assignment 4 requires the use a CCIS Linux machine and Python 2.6+
+
+****************************************
+***            HOW TO USE            ***
+****************************************
+
+In order to run the program on a CCIS Linux machine, please use this format:
+
+FORMAT
+    ./cs4500 <input_file> <output_file>
+EXAMPLE
+    ./cs4500 ~/test_inputs/StackInt.txt ~/test_outputs/output.txt
+
+
+****************************************
+***     IMPORTANT NOTES TO GRADER    ***
+***        BUGS AND PROBLEMS         ***
+****************************************
+
+This is the first submitted version of CS4500 Assignment 4.
+The following problems exist and will be addressed in the next
+version: 
+
+    - Parser partially works 
+        Problems with ambiguous grammar rules 
+    - On execution of code, output file will contain a parse tree
+    - Starting grammar is operation_spec instead of input
+        
+
+
+
+
+
+
