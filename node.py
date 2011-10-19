@@ -235,13 +235,23 @@ lexer = lex.lex(reflags=re.UNICODE)
 #    print tok
 
 
+class Node:
+    def __init__(self,type,children=None,value=None):
+        self.type = type
+        if children :
+            self.children = children
+        else :
+            self.children = []
+        self.value = value 
+
+
 def p_input(p):
     'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
-    p[0] = ('input', ("Signature:", p[3], "Equations:", p[6]))
+    p[0] = Node('input', [p[3], p[6]])
 
 def p_signatures(p): 
     '''signatures : signature signatures2'''
-    p[0] = ('signatures', (p[1], p[2]))
+    p[0] = Node('signatures', [p[1], p[2]])
 
 def p_signatures2(p):
     '''signatures2 : signatures
@@ -250,11 +260,11 @@ def p_signatures2(p):
 
 def p_signature(p): 
     'signature : ADT COLON typename operation_specs'
-    p[0] = ('signature', ('ADT:', p[3], p[4]))
+    p[0] = Node('signature', [p[3], p[4]])
 
 def p_operation_specs(p):
     '''operation_specs : operation_spec operation_specs2'''
-    p[0] = ('operation-specs', (p[1], p[2]))
+    p[0] = Node('operation-specs', [p[1], p[2]])
 
 def p_operation_specs2(p):
     '''operation_specs2 : operation_specs
@@ -263,45 +273,45 @@ def p_operation_specs2(p):
 
 def p_operation_spec(p):
     '''operation_spec : operation COLON operation_spec2'''
-    p[0] = ('operation-spec', (p[1], ':', p[3]))
+    p[0] = Node('operation-spec', [p[1], p[3]])
 
 def p_operation_spec2(p):
     '''operation_spec2 : ARROW type 
                        | arg_types ARROW type'''
     if len(p) == 3 :
-        p[0] = ('->', p[2])
+        p[0] = p[2]
     else :
-        p[0] = (p[1], '->', p[3])
+        p[0] = Node('operation-spec-args', [p[1], p[3]])
 
 def p_operation(p):
     'operation : identifier'
-    p[0] = ('operation', p[1])
+    p[0] = Node('operation', [p[1]])
 
 def p_arg_types(p):
     '''arg_types : type arg_types2'''
-    p[0] = ('arg-types', (p[1], p[2]))
+    p[0] = Node('arg-types', [p[1], p[2]])
 
 def p_arg_types2(p):
     '''arg_types2 : STAR arg_types
                   | empty'''
     if len(p) == 3 :
-        p[0] = ('*', p[2])
+        p[0] = p[2]
     else :
         p[0] = p[1]
 
 def p_type(p): 
     '''type : TYPENAME
             | typename'''
-    p[0] = ('type', p[1])
+    p[0] = Node('type', [p[1]])
 
 def p_typename(p):
     'typename : identifier'
-    p[0] = ('typename', p[1])
+    p[0] = Node('typename', [p[1]])
 
 
 def p_identifier(p):
     '''identifier : ID'''
-    p[0] = ('identifier', p[1])
+    p[0] = Node('identifier', [], p[1])
 
 #def p_peculiar_identifier(p):
 #    '''peculiar_identifier : subsequent_star 
@@ -432,7 +442,7 @@ for line in file:
         print tok
     
     yada = yacc.parse(line)
-    print yada
+    print yada.type
     output.write(unicode(yada))
 
 file.close()
