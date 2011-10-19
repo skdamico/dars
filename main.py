@@ -1,5 +1,5 @@
-import ply.lex as lex
-import ply.yacc as yacc
+import lex
+import yacc
 
 import re
 import codecs, sys
@@ -350,12 +350,11 @@ int
 #    elif (len(p) == 3): 
 #        p[0] = str(p[1]) + p[2]
 
-# input
+
 def p_input(p):
     'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
     p[0] = ('input', "Signature:", p[3], "Equations:", p[6])
 
-# signatures
 def p_signatures(p): 
     '''signatures : signatures signature
                   | signature'''
@@ -364,36 +363,31 @@ def p_signatures(p):
     else:
         p[0] = ('signatures', p[1], p[2])
 
-# signature
 def p_signature(p): 
     'signature : ADT COLON typename operation_specs'
     p[0] = ('signature', 'ADT:', p[3], p[4])
 
-# operationsSpecs
 def p_operation_specs(p):
-    '''operation_specs : operation_spec operation_specs
-                       | operation_spec'''
+    '''operation_specs : operation_specs operation_spec
+                       | empty'''
     if len(p) == 2: 
         p[0] = ('operation-specs', p[1])
     else:
         p[0] = ('operation-specs', p[1], p[2])
 
 
-#operationSpec
 def p_operation_spec(p):
     '''operation_spec : operation COLON arg_types ARROW type
                       | operation COLON ARROW type'''
     if len(p) == 6:
-        p[0] = ('operation-spec', p[1], ':', p[3], '->', p[5])
+        p[0] = ('operation-spec', (p[1], ':', p[3], '->', p[5]))
     else:
-        p[0] = ('operation-spec', p[1], ':', '->', p[4])
+        p[0] = ('operation-spec', (p[1], ': ->', p[4]))
 
-# operation
 def p_operation(p):
     'operation : identifier'
     p[0] = ('operation', p[1])
 
-# arg_types
 def p_arg_types(p):
     '''arg_types : arg_types STAR type
                  | type'''
@@ -424,7 +418,9 @@ def p_identifier(p):
 
 def p_peculiar_identifier(p):
     '''peculiar_identifier : ARROW subsequent_star 
-                           | ellipsis'''
+                           | ellipsis
+                           | PLUS
+                           | MINUS'''
     if len(p) == 4 :
         p[0] = ('peculiar-identifier', '->', p[3])
     else :
@@ -432,7 +428,6 @@ def p_peculiar_identifier(p):
 
 def p_subsequent_star(p):
     '''subsequent_star : subsequent_star subsequent
-                       | subsequent
                        | empty'''
     if len(p) == 3 : 
         p[0] = ('subsequent-star', p[1], p[2])
@@ -478,28 +473,26 @@ def p_inline_hex_escape(p):
     if p[2] == 'x' : p[0] = ('inline-hex-escape', r"\x", p[3], ";")
 
 def p_hex_scalar_value(p):
-    'hex_scalar_value : hex_digit_plus'
+    'hex_scalar_value : hex_digit hex_digit_star'
     p[0] = ('hex-scalar-value', p[1])
 
-def p_hex_digit_plus(p):
-    '''hex_digit_plus : hex_digit_plus hex_digit
-                      | hex_digit'''
-    if (len(p) == 2) : 
-        p[0] = ('hex-digit-plus', p[1])
-    elif (len(p) == 3) : 
-        p[0] = ('hex-digit-plus', p[1], p[2])
+def p_hex_digit_star(p):
+    '''hex_digit_star : hex_digit_star hex_digit
+                      | empty'''
+    if len(p) == 3 : 
+        p[0] = ('hex-digit-star', p[1], p[2])
+    else :
+        p[0] = ('hex-digit-star', p[1])
 
 def p_hex_digit(p):
     '''hex_digit : DIGIT
                  | LETTER'''
     p[0] = ('hex-digit', p[1])
 
-# equations
 def p_equations(p): 
     'equations : empty'
     p[0] = ('equations', p[1])
 
-# empty
 def p_empty(p):
     'empty :'
     pass
@@ -509,17 +502,18 @@ def p_error(p):
 
 
 #Checks to make sure an input file is given
-if len(sys.argv) < 2:
-    sys.exit('Usage: %s file-name' % sys.argv[0])
+if len(sys.argv) < 3:
+    sys.exit('Usage: %s input-file output-file' % sys.argv[0])
 
 fileName = sys.argv[1]
+outputName = sys.argv[2] 
 
 #Opens input file
 file = codecs.open(fileName, "r", "utf-8")
-numLines = 0
+output = codecs.open(outputName, "w", "utf-8")
 
 for line in file:
-    yacc.yacc(start='operation_specs')
+    yacc.yacc(start='operation_spec')
     # Do stuff here
     lexer.input(line)
 
@@ -530,5 +524,7 @@ for line in file:
     
     yada = yacc.parse(line)
     print yada
+    output.write(unicode(yada))
 
 file.close()
+output.close()

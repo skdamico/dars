@@ -1,2 +1,1 @@
-s: str * int -> penis 
-st: str * int -> int
+empty: -> StackInt
