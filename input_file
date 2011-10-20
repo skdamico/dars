@@ -1,1 +1,1 @@
-Signature: ADT: StackInt empty: -> StackInt top: StackInt * int -> int Equations:
+Signature: ADT: StackInt empty: -> StackInt top: StackInt * int -> int isEmpty: StackInt -> boolean top: StackInt -> int pop: StackInt -> StackInt Equations:
