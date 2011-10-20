@@ -5,16 +5,61 @@ import re
 import codecs, sys
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-def retrieveValues(n, q):
+class SignatureStruct:
+    def __init__(self,operation,args,output):
+        self.operation = operation
+        self.args = args
+        self.output = output        
+
+def determineSignatures(processed):
+    #gets rid of first element being the ADT name for simplicity
+    processed.get()
+    operation = ''
+    args = []
+    foundFirstOperation = False
+    listOfSignatures = []
+    while (not processed.empty()) :
+        element = processed.get()
+        if ('operation' in element) :
+            if (not foundFirstOperation) :
+                foundFirstOperation = True
+                operation = element.get('operation')
+            else:
+				#last element that was put on the list must be the output type
+                output = args.pop()
+                sig = SignatureStruct(operation, args, output)
+                operation = element.get('operation')
+                args = []
+                listOfSignatures.append(sig)
+        elif ('afterops' in element) :
+            args.append(element.get('afterops')) 
+    #queue is now empty, add last signature onto list
+	output = args.pop()
+    sig = SignatureStruct(operation, args, output)
+    listOfSignatures.append(sig)
+    return listOfSignatures
+                
+        
+def retrieveValues(n, q, opsFlag, processed):
     if (isinstance(n, unicode)) :
+        processed.put(dict({'afterops': n}))
         q.put(n)
     elif (isinstance(n.type, str) and n.type == 'empty') :
         pass
     elif (n.value is None) :
-        retrieveValues(n.children[0], q)
+        if (n.type == 'operation') :
+            opsFlag = True
+        retrieveValues(n.children[0], q, opsFlag, processed)
         if (len(n.children) > 1) :
-            retrieveValues(n.children[1], q)
+            retrieveValues(n.children[1], q, opsFlag, processed)
     else:
+        if (isinstance(n.type, str)) :
+            if (n.type == 'identifier') :
+                if (opsFlag) :
+                    processed.put(dict({'operation' : n.value}))
+                    opsFlag = False
+                else :
+                    processed.put(dict({'afterops' : n.value}))
         q.put(n.value)
 # Lexer
 
@@ -457,9 +502,18 @@ for line in file:
     
     yada = yacc.parse(line)
     que = Queue.Queue()
-    retrieveValues(yada.children[0], que)
-    while (not que.empty()): 
-        print que.get()
+    processed = Queue.Queue();
+    opsFlag = False
+    retrieveValues(yada.children[0], que, opsFlag, processed)
+    signaturesList = determineSignatures(processed)
+    for sig in signaturesList:
+        print "Operation: " + sig.operation
+        print "Arguments: "
+        for arg in sig.args:
+            print arg + ' '
+        print "Output: " + sig.output
+    #while (not que.empty()): 
+        #print que.get()
     output.write(unicode(yada))
 
 file.close()
