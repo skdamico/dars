@@ -34,7 +34,7 @@ def determineSignatures(processed):
         elif ('afterops' in element) :
             args.append(element.get('afterops')) 
     #queue is now empty, add last signature onto list
-	output = args.pop()
+    output = args.pop()
     sig = SignatureStruct(operation, args, output)
     listOfSignatures.append(sig)
     return listOfSignatures
