@@ -1,10 +1,21 @@
-import lex
-import yacc
-
+import ply.lex as lex 
+import ply.yacc as yacc
+import Queue
 import re
 import codecs, sys
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
+def retrieveValues(n, q):
+    if (isinstance(n, unicode)) :
+        q.put(n)
+    elif (isinstance(n.type, str) and n.type == 'empty') :
+        pass
+    elif (n.value is None) :
+        retrieveValues(n.children[0], q)
+        if (len(n.children) > 1) :
+            retrieveValues(n.children[1], q)
+    else:
+        q.put(n.value)
 # Lexer
 
 tokens = (
@@ -302,7 +313,10 @@ def p_arg_types2(p):
 def p_type(p): 
     '''type : TYPENAME
             | typename'''
-    p[0] = Node('type', [p[1]])
+    if (isinstance(p[1], str)) :
+        p[0] = Node('type', [], p[1])
+    else:
+        p[0] = Node('type', [p[1]])
 
 def p_typename(p):
     'typename : identifier'
@@ -414,7 +428,7 @@ def p_equations(p):
 
 def p_empty(p):
     'empty :'
-    pass
+    p[0] = Node('empty', [])
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
@@ -442,8 +456,12 @@ for line in file:
         print tok
     
     yada = yacc.parse(line)
-    print yada.type
+    que = Queue.Queue()
+    retrieveValues(yada.children[0], que)
+    while (not que.empty()): 
+        print que.get()
     output.write(unicode(yada))
 
 file.close()
 output.close()
+
