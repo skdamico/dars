@@ -109,7 +109,29 @@ def randomTypeGen(type) :
     elif type == 'char' :
         randomString = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,10)))
         return repr(unicode(randomString, "utf-8" ))
-    
+
+#largely assumes the method with no args and returns the typename is the base
+def findBaseCase(sigStruct):
+    opSpecs = sigStruct.opspecs  
+    for spec in opSpecs:
+        if len(spec.args) == 0 :
+            if (spec.output == sigStruct.typename) :
+                return spec.operation + '()'
+    sys.exit('No base case found for ' + sigStruct.typename)
+
+def generateSchemeExpressions(sigstruct, type):
+        # turn each signature into a Scheme Expression
+        for spec in sigstruct.opspecs:
+            expr =  "(" + spec.operation + "("
+            for arg in spec.args:
+                if (arg == sigstruct.typename) :
+                    expr += type + ' '
+                else: 
+                    expr += str(randomTypeGen(arg)) + ' '
+            expr = string.strip(expr)
+            expr += '))'
+            print expr 
+                
 tokens = (
     "ID",
     "LETTER",
@@ -549,6 +571,10 @@ for line in file:
     
     yada = yacc.parse(line)
     signatures = retrieveSignatures(yada.children[0])
+    
+    for sig in signatures :
+        generateSchemeExpressions(sig, findBaseCase(sig))
+    '''    
     for sig in signatures :
         print "Signature:" + sig.typename
         for opspec in sig.opspecs :
@@ -562,7 +588,7 @@ for line in file:
         print 'string ' + str(i) + ': ' + randomTypeGen('string')
         print 'boolean ' + str(i) + ': ' + randomTypeGen('boolean')
         print 'char ' + str(i) + ': ' + randomTypeGen('char') 
-        
+    '''
     #while (not que.empty()): 
         #print que.get()
     output.write(unicode(yada))
