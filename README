@@ -1,12 +1,12 @@
 ************************************************************
-***  DOCUMENTATION FOR CS4500 ASSIGNMENT 4 (Version 1)   *** 
+***  DOCUMENTATION FOR CS4500 ASSIGNMENT 4 (Version 2)   *** 
 ************************************************************
 
 ****************************************
 ***    TEAM CONTACT INFORMATION      ***
 ****************************************
 
-Alex Chen           - ouloboros@gmail.com 
+Allen Chen          - ouloboros@gmail.com 
 Stefano D'Amico     - skdamico@gmail.com
 Dung Nguyen         - dnguyen1022@gmail.com
 Rhistina Revilla    - rhistina@gmail.com
@@ -20,7 +20,7 @@ Please feel free to contact any of the above email address(es).
 This directory contains the following files and subdirectories:
 
     README                  - this file
-    main.py                 - generates valid test expressions on input ADT
+    node.py                 - generates valid test expressions on input ADT
                               using the generated lexer and parser objects
     cs4500                  - high level script that calls main.py
                               followed by input and output arguments
@@ -66,17 +66,27 @@ EXAMPLE
 ***        BUGS AND PROBLEMS         ***
 ****************************************
 
-This is the first submitted version of CS4500 Assignment 4.
+This is the second submitted version of CS4500 Assignment 4.
 The following problems exist and will be addressed in the next
-version: 
+assignment: 
 
-    - Parser partially works 
-        Problems with ambiguous grammar rules 
-    - On execution of code, output file will contain a parse tree
-    - Starting grammar is operation_spec instead of input
-        
+    - Identifier evaluates to string rather than Scheme expressions
+        This is due to ambigious grammar definitions. Will be addressed
+        in future assignments.
+    - The program will not generate expected results when input_file
+        contains multiple signatures.
+        NOTE: Multiple signatures were not a requirement for this 
+        assignment. However, it was identified as a potential issue.
 
+****************************************
+***    README FILE REVISION NOTES    ***
+****************************************
 
+IMPORTANT NOTES TO GRADER Section updated.
+
+TEAM CONTACT INFORMATION Section revised.
+
+FILES IN THIS DIRECTORY Section updated. 
 
 
 
