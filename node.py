@@ -3,6 +3,8 @@ import ply.yacc as yacc
 import Queue
 import re
 import codecs, sys
+import random
+import string
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 class SignatureStruct:
@@ -61,8 +63,26 @@ def retrieveValues(n, q, opsFlag, processed):
                 else :
                     processed.put(dict({'afterops' : n.value}))
         q.put(n.value)
-# Lexer
 
+def retrieveSignatures(tree):
+    que = Queue.Queue()
+    processed = Queue.Queue();
+    opsFlag = False
+    retrieveValues(tree, que, opsFlag, processed)
+    return determineSignatures(processed)
+
+def randomTypeGen(type) :
+    if type == 'int' :
+        return ''.join(random.choice(string.digits) for x in range(15))
+    elif type =='boolean' :
+        bool = ['#t', '#T', '#f', '#F']
+        return random.choice(bool)
+    elif type == 'string' :
+        return ''.join(random.choice(string.ascii_letters + string.digits) for x in range(20))
+    elif type == 'char' :
+        randomString = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(10))
+        return repr(unicode(randomString, "utf-8" ))
+    
 tokens = (
     "ID",
     "LETTER",
@@ -501,17 +521,19 @@ for line in file:
         print tok
     
     yada = yacc.parse(line)
-    que = Queue.Queue()
-    processed = Queue.Queue();
-    opsFlag = False
-    retrieveValues(yada.children[0], que, opsFlag, processed)
-    signaturesList = determineSignatures(processed)
+    signaturesList = retrieveSignatures(yada.children[0])
     for sig in signaturesList:
         print "Operation: " + sig.operation
         print "Arguments: "
         for arg in sig.args:
             print arg + ' '
         print "Output: " + sig.output
+    for i in range(11) :
+        print 'int ' + str(i) + ': ' + randomTypeGen('int')
+        print 'string ' + str(i) + ': ' + randomTypeGen('string')
+        print 'boolean ' + str(i) + ': ' + randomTypeGen('boolean')
+        print 'char ' + str(i) + ': ' + randomTypeGen('char') 
+        
     #while (not que.empty()): 
         #print que.get()
     output.write(unicode(yada))
