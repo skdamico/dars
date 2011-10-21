@@ -8,6 +8,8 @@ import string
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
+o = ''
+
 class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
@@ -117,23 +119,28 @@ def findBaseCase(sigStruct):
     for spec in opSpecs:
         if len(spec.args) == 0 :
             if (spec.output == sigStruct.typename) :
-                return spec.operation + '()'
+                return spec.operation
     sys.exit('No base case found for ' + sigStruct.typename)
 
 def generateBaseExpressions(sigstruct, type):
+    global o
     generatedExprs = dict()
         # turn each signature into a Scheme Expression
     for spec in sigstruct.opspecs:
-        expr =  "(" + spec.operation + "("
+        expr =  "(" + spec.operation + ' '
         for arg in spec.args:
             if (arg == sigstruct.typename) :
                 expr += type + ' '
             else: 
                 expr += str(randomTypeGen(arg)) + ' '
         expr = string.strip(expr)
-        expr += '))'
+        expr += ')'
         generatedExprs[expr] = spec.output
-        print expr
+        # generate some random bases for primitives
+        if spec.output in ["int","boolean","string","char"] :
+            for n in range(0, 3):
+                generatedExprs[randomTypeGen(spec.output)] = spec.output
+        o += expr + '\n'
     
     return mapExprToTypes(generatedExprs)
 
@@ -145,27 +152,31 @@ def mapExprToTypes(exprs):
     return remappedExprs
     
 def generateNonBaseExpressions(exprs, sigstruct):
+    global o
     generatedExprs = dict()
     specs = sigstruct.opspecs
     base = findBaseCase(sigstruct).split('(', 2)[0]
     for spec in specs:
         if (spec.operation != base) :
-            newExpr = "(" + spec.operation + "("
+            newExpr = "(" + spec.operation + ' '
             for arg in spec.args :
                 newExpr += random.choice(exprs[arg]) + ' '
-                newExpr = string.strip(newExpr)
-                newExpr += ')) '
-                generatedExprs[newExpr] = spec.output
-                print newExpr
+            newExpr = string.strip(newExpr)
+            newExpr += ') '
+            generatedExprs[newExpr] = spec.output
+            o += newExpr + '\n'
     
     return mapExprToTypes(generatedExprs)
 
 def printNumIterExpressions(num, sigstruct):
+    global o
+    o = ''
     iter = generateBaseExpressions(sigstruct, findBaseCase(sig))
     num -= 1
     while num > 0 :
         iter = generateNonBaseExpressions(iter, sig)
         num -= 1
+    return o
                              
 tokens = (
     "ID",
@@ -607,7 +618,8 @@ for line in file:
     yada = yacc.parse(line)
     signatures = retrieveSignatures(yada.children[0])
     for sig in signatures :
-        printNumIterExpressions(10, sig)
+        expressions = printNumIterExpressions(10, sig)
+        output.write(unicode(expressions))
     '''    
     for sig in signatures :
         print "Signature:" + sig.typename
@@ -623,9 +635,6 @@ for line in file:
         print 'boolean ' + str(i) + ': ' + randomTypeGen('boolean')
         print 'char ' + str(i) + ': ' + randomTypeGen('char') 
     '''
-    #while (not que.empty()): 
-        #print que.get()
-    output.write(unicode(yada))
 
 file.close()
 output.close()
