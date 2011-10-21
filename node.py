@@ -78,9 +78,9 @@ def randomTypeGen(type) :
         bool = ['#t', '#T', '#f', '#F']
         return random.choice(bool)
     elif type == 'string' :
-        return ''.join(random.choice(string.ascii_letters + string.digits) for x in range(20))
+        return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,20)))
     elif type == 'char' :
-        randomString = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(10))
+        randomString = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,10)))
         return repr(unicode(randomString, "utf-8" ))
     
 tokens = (
