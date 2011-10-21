@@ -1,5 +1,5 @@
-import ply.lex as lex 
-import ply.yacc as yacc
+import lex
+import yacc
 import Queue
 import re
 import codecs, sys
@@ -605,36 +605,26 @@ outputName = sys.argv[2]
 file = codecs.open(fileName, "r", "utf-8")
 output = codecs.open(outputName, "w", "utf-8")
 
+# concat input from file
+inp = ''
 for line in file:
-    yacc.yacc(start='input')
-    # Do stuff here
-    lexer.input(line)
+    inp += line
+ 
 
-    while True:
-        tok = lexer.token()
-        if not tok: break      # No more input
-        print tok
-    
-    yada = yacc.parse(line)
-    signatures = retrieveSignatures(yada.children[0])
-    for sig in signatures :
-        expressions = printNumIterExpressions(10, sig)
-        output.write(unicode(expressions))
-    '''    
-    for sig in signatures :
-        print "Signature:" + sig.typename
-        for opspec in sig.opspecs :
-            print "Operation:" + opspec.operation
-            print "Arguments: "
-            for arg in opspec.args:
-                print arg + ' '
-            print "Output: " + opspec.output
-    for i in range(11) :
-        print 'int ' + str(i) + ': ' + randomTypeGen('int')
-        print 'string ' + str(i) + ': ' + randomTypeGen('string')
-        print 'boolean ' + str(i) + ': ' + randomTypeGen('boolean')
-        print 'char ' + str(i) + ': ' + randomTypeGen('char') 
-    '''
+yacc.yacc(start='input')
+lexer.input(inp)
+
+# test lexer
+#while True:
+#    tok = lexer.token()
+#    if not tok: break      # No more input
+#    print tok
+
+yada = yacc.parse(inp)
+signatures = retrieveSignatures(yada.children[0])
+for sig in signatures :
+    expressions = printNumIterExpressions(10, sig)
+    output.write(unicode(expressions))
 
 file.close()
 output.close()
