@@ -27,7 +27,7 @@ def determineSignatures(processed):
                 foundFirstOperation = True
                 operation = element.get('operation')
             else:
-				#last element that was put on the list must be the output type
+                #last element that was put on the list must be the output type
                 output = args.pop()
                 sig = SignatureStruct(operation, args, output)
                 operation = element.get('operation')
@@ -73,7 +73,7 @@ def retrieveSignatures(tree):
 
 def randomTypeGen(type) :
     if type == 'int' :
-        return ''.join(random.choice(string.digits) for x in range(15))
+        return str(random.randrange(0,99999999999))
     elif type =='boolean' :
         bool = ['#t', '#T', '#f', '#F']
         return random.choice(bool)
@@ -159,8 +159,8 @@ def t_SEMICOLON(t):
     return t
 
 def t_ESCAPE_QUOTE(t):
-	ur'\"'
-	return t
+    ur'\"'
+    return t
 
 def t_PLUS(t):
     ur'\+'
