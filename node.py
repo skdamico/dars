@@ -8,56 +8,82 @@ import string
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 class SignatureStruct:
+    def __init__(self,typename,opspecs):
+        self.typename = typename
+        self.opspecs = opspecs
+
+class OperationSpecStruct:
     def __init__(self,operation,args,output):
         self.operation = operation
         self.args = args
-        self.output = output        
+        self.output = output 
 
 def determineSignatures(processed):
     #gets rid of first element being the ADT name for simplicity
-    processed.get()
+    typename = ''
     operation = ''
     args = []
-    foundFirstOperation = False
+    foundFirstTypeName = False
     listOfSignatures = []
+    foundFirstOperation = False
+    listOfOperationSpecs = []
     while (not processed.empty()) :
         element = processed.get()
-        if ('operation' in element) :
+        if ('typename' in element) :
+            if (not foundFirstTypeName) :
+                foundFirstTypeName = True
+                typename = element.get('typename')
+            else :
+                sig = SignatureStruct(typename, listOfOperationSpecs)
+                listOfSignatures.append(sig)
+                typename = element.get('typename')
+                listOfOperationSpecs = []
+        elif ('operation' in element) :
             if (not foundFirstOperation) :
                 foundFirstOperation = True
                 operation = element.get('operation')
             else:
 				#last element that was put on the list must be the output type
                 output = args.pop()
-                sig = SignatureStruct(operation, args, output)
+                opspec = OperationSpecStruct(operation, args, output)
                 operation = element.get('operation')
                 args = []
-                listOfSignatures.append(sig)
+                listOfOperationSpecs.append(opspec)
         elif ('afterops' in element) :
             args.append(element.get('afterops')) 
     #queue is now empty, add last signature onto list
     output = args.pop()
-    sig = SignatureStruct(operation, args, output)
+    opspec = OperationSpecStruct(operation, args, output)
+    listOfOperationSpecs.append(opspec)
+
+    sig = SignatureStruct(typename, listOfOperationSpecs)
     listOfSignatures.append(sig)
-    return listOfSignatures
+    
+    return listOfSignatures 
                 
         
-def retrieveValues(n, q, opsFlag, processed):
+def retrieveValues(n, q, typeFlag, opsFlag, processed):
     if (isinstance(n, unicode)) :
         processed.put(dict({'afterops': n}))
         q.put(n)
     elif (isinstance(n.type, str) and n.type == 'empty') :
         pass
     elif (n.value is None) :
-        if (n.type == 'operation') :
+        if (n.type == 'signature') :
+            typeFlag = True
+        elif (n.type == 'operation') :
             opsFlag = True
-        retrieveValues(n.children[0], q, opsFlag, processed)
+        retrieveValues(n.children[0], q, typeFlag, opsFlag, processed)
         if (len(n.children) > 1) :
-            retrieveValues(n.children[1], q, opsFlag, processed)
+            typeFlag = False
+            retrieveValues(n.children[1], q, typeFlag, opsFlag, processed)
     else:
         if (isinstance(n.type, str)) :
             if (n.type == 'identifier') :
-                if (opsFlag) :
+                if (typeFlag) :
+                    processed.put(dict({'typename' : n.value}))
+                    typeFlag = False
+                elif (opsFlag) :
                     processed.put(dict({'operation' : n.value}))
                     opsFlag = False
                 else :
@@ -67,8 +93,9 @@ def retrieveValues(n, q, opsFlag, processed):
 def retrieveSignatures(tree):
     que = Queue.Queue()
     processed = Queue.Queue();
+    typeFlag = False
     opsFlag = False
-    retrieveValues(tree, que, opsFlag, processed)
+    retrieveValues(tree, que, typeFlag, opsFlag, processed)
     return determineSignatures(processed)
 
 def randomTypeGen(type) :
@@ -521,13 +548,15 @@ for line in file:
         print tok
     
     yada = yacc.parse(line)
-    signaturesList = retrieveSignatures(yada.children[0])
-    for sig in signaturesList:
-        print "Operation: " + sig.operation
-        print "Arguments: "
-        for arg in sig.args:
-            print arg + ' '
-        print "Output: " + sig.output
+    signatures = retrieveSignatures(yada.children[0])
+    for sig in signatures :
+        print "Signature:" + sig.typename
+        for opspec in sig.opspecs :
+            print "Operation:" + opspec.operation
+            print "Arguments: "
+            for arg in opspec.args:
+                print arg + ' '
+            print "Output: " + opspec.output
     for i in range(11) :
         print 'int ' + str(i) + ': ' + randomTypeGen('int')
         print 'string ' + str(i) + ': ' + randomTypeGen('string')
