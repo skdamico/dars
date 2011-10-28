@@ -512,6 +512,22 @@ def retrieveSignatures(tree):
     retrieveValues(tree, sigFlag, opsFlag, processed)
     return determineSignatures(processed)
 
+#largely assumes the method with no args and returns the typename is the base
+def findBaseCase(sigStruct):
+    opSpecs = sigStruct.opspecs  
+    for spec in opSpecs:
+        if len(spec.args) == 0 :
+            if (spec.output == sigStruct.typename) :
+                return spec.operation
+    sys.exit('No base case found for ' + sigStruct.typename)
+
+def mapExprToTypes(exprs):
+    from collections import defaultdict
+    remappedExprs = defaultdict(list)
+    for k, v in exprs.iteritems():
+        remappedExprs[v].append(k)
+    return remappedExprs
+
 def randomTypeGen(type) :
     if type == 'int' :
         return str(random.randrange(0,99999999999))
@@ -523,16 +539,7 @@ def randomTypeGen(type) :
     elif type == 'char' :
         randomString = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,10)))
         return repr(unicode(randomString, "utf-8" ))
-
-#largely assumes the method with no args and returns the typename is the base
-def findBaseCase(sigStruct):
-    opSpecs = sigStruct.opspecs  
-    for spec in opSpecs:
-        if len(spec.args) == 0 :
-            if (spec.output == sigStruct.typename) :
-                return spec.operation
-    sys.exit('No base case found for ' + sigStruct.typename)
-
+    
 def generateBaseExpressions(sigstruct, type):
     global o
     generatedExprs = dict()
@@ -546,22 +553,14 @@ def generateBaseExpressions(sigstruct, type):
                 expr += str(randomTypeGen(arg)) + ' '
         expr = string.strip(expr)
         expr += ')'
-        generatedExprs[spec.output].append(expr)
+        generatedExprs[expr] = spec.output
         # generate some random bases for primitives
         if spec.output in ["int","boolean","string","char"] :
             for n in range(0, 3):
-                generatedExprs[spec.output].append(randomTypeGen(spec.output))
+                generatedExprs[randomTypeGen(spec.output)] = spec.output
         o += expr + '\n'
     
-    return generatedExprs
-
-#def mapExprToTypes(exprs):
-#    from collections import defaultdict
-#    remappedExprs = defaultdict(list)
-#        for k, v in exprs.iteritems():
-    
-#            remappedExprs[v].append(k)
-#        return remappedExprs
+    return mapExprToTypes(generatedExprs)
     
 def generateNonBaseExpressions(exprs, sigstruct):
     global o
@@ -575,10 +574,10 @@ def generateNonBaseExpressions(exprs, sigstruct):
                 newExpr += random.choice(exprs[arg]) + ' '
             newExpr = string.strip(newExpr)
             newExpr += ') '
-            generatedExprs[spec.output].append(newExpr)
+            generatedExprs[newExpr] = spec.output
             o += newExpr + '\n'
     
-    return generatedExprs
+    return mapExprToTypes(generatedExprs)
 
 def printNumIterExpressions(num, sigstruct):
     global o
