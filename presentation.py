@@ -420,7 +420,6 @@ def p_empty(p):
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
-
 class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
@@ -431,7 +430,35 @@ class OperationSpecStruct:
         self.operation = operation
         self.args = args
         self.output = output 
-
+  
+#retrieveValues - takes in a tree of nodes, goes through each branch,
+#finds the values at the end of each branch, and maps it 
+def retrieveValues(n, sigFlag, opsFlag, processed):
+    if (isinstance(n, unicode)) :
+        processed.put(dict({'afterops': n}))
+    elif (isinstance(n.type, str) and n.type == 'empty') :
+        pass
+    elif (n.value is None) :
+        if (n.type == 'signature') :
+            sigFlag = True
+        elif (n.type == 'operation') :
+            opsFlag = True
+        retrieveValues(n.children[0], sigFlag, opsFlag, processed)
+        if (len(n.children) > 1) :
+            sigFlag = False
+            retrieveValues(n.children[1], sigFlag, opsFlag, processed)
+    else:
+        if (isinstance(n.type, str)) :
+            if (n.type == 'identifier') :
+                if (sigFlag) :
+                    processed.put(dict({'signame' : n.value}))
+                    sigFlag = False
+                elif (opsFlag) :
+                    processed.put(dict({'operation' : n.value}))
+                    opsFlag = False
+                else :
+                    processed.put(dict({'afterops' : n.value}))
+                    
 #uses the dictionaries we made in order to create the
 #signature and operation structures 
 def determineSignatures(processed):
@@ -474,35 +501,7 @@ def determineSignatures(processed):
     sig = SignatureStruct(typename, listOfOperationSpecs)
     listOfSignatures.append(sig)
     
-    return listOfSignatures     
-
-#retrieveValues - takes in a tree of nodes, goes through each branch,
-#finds the values at the end of each branch, and maps it 
-def retrieveValues(n, sigFlag, opsFlag, processed):
-    if (isinstance(n, unicode)) :
-        processed.put(dict({'afterops': n}))
-    elif (isinstance(n.type, str) and n.type == 'empty') :
-        pass
-    elif (n.value is None) :
-        if (n.type == 'signature') :
-            sigFlag = True
-        elif (n.type == 'operation') :
-            opsFlag = True
-        retrieveValues(n.children[0], sigFlag, opsFlag, processed)
-        if (len(n.children) > 1) :
-            sigFlag = False
-            retrieveValues(n.children[1], sigFlag, opsFlag, processed)
-    else:
-        if (isinstance(n.type, str)) :
-            if (n.type == 'identifier') :
-                if (sigFlag) :
-                    processed.put(dict({'signame' : n.value}))
-                    sigFlag = False
-                elif (opsFlag) :
-                    processed.put(dict({'operation' : n.value}))
-                    opsFlag = False
-                else :
-                    processed.put(dict({'afterops' : n.value}))
+    return listOfSignatures   
 
 #Retrieves signatures for an AST
 def retrieveSignatures(tree):
