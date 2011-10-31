@@ -10,8 +10,8 @@ pop: StackInt -> StackInt
 
 Equations:
 
-(isEmpty (empty))  =  #t
-(isEmpty (push s n))  =  #f
+(isEmpty (empty))  =  true
+(isEmpty (push s n))  =  false
 (top (push s n))  =  n
 (pop (push s n))  =  s
 

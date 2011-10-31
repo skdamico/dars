@@ -426,21 +426,12 @@ def p_identifier(p):
 #
 
 def p_equations(p): 
-    '''equations : equation equations2'''
-    p[0] = Node('equations', [p[1], p[2]])
-
-def p_equations2(p):
-    '''equations2 : equations
-                  | empty'''
-    p[0] = p[1]
-
-#def p_equations(p): 
-#    '''equations : equation equations 
-#                 | empty'''
-#    if (len(p) == 2) :
-#        p[0] = p[1]
-#    else :
-#        p[0] = Node('equations', [p[1],p[2]])
+    '''equations : equation equations 
+                 | empty'''
+    if (len(p) == 2) :
+        p[0] = p[1]
+    else :
+        p[0] = Node('equations', [p[1],p[2]])
 
 def p_equation(p):
     '''equation : term EQUAL term'''
@@ -454,22 +445,13 @@ def p_term(p):
     else :
         p[0] = Node('term', [p[2], p[3]]) 
 
-def p_args(p): 
-    '''args : term args2'''
-    p[0] = Node('args', [p[1], p[2]])
-
-def p_args2(p):
-    '''args2 : args
-             | empty'''
-    p[0] = p[1]
-        
-#def p_args(p):
-#    '''args : term args
-#            | empty'''
-#    if (len(p) == 2) :
-#        p[0] = p[1]
-#    else:
-#        p[0] = Node('args', [p[1], p[2]])
+def p_args(p):
+    '''args : term args
+            | empty'''
+    if (len(p) == 2) :
+        p[0] = p[1]
+    else:
+        p[0] = Node('args', [p[1], p[2]])
 
 def p_empty(p):
     'empty :'
