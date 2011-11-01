@@ -3,7 +3,7 @@ Signature:
 ADT: StackInt 
 
 empty: -> StackInt 
-top: StackInt * int -> int 
+top: StackInt -> int 
 isEmpty: StackInt -> boolean 
 push: StackInt * int -> StackInt 
 pop: StackInt -> StackInt 
