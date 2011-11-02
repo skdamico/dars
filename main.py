@@ -417,9 +417,8 @@ def equalExpr(expr1, expr2):
         elif (len(expr1.args) == len(expr2.args)):
             for i in range(len(expr1.args)) :
                 if (isinstance(expr1.args[i].get('Value'), Expr) and isinstance(expr2.args[i].get('Value'), Expr)):
-                    equalExpr(expr1.args[i].get('Value'),expr2.args[i].get('Value'))
+                    return equalExpr(expr1.args[i].get('Value'),expr2.args[i].get('Value'))
                 else :
-                    print (expr1.args[i].get('ArgType') == expr2.args[i].get('ArgType'))
                     return (expr1.args[i].get('ArgType') == expr2.args[i].get('ArgType'))
         else:
             return False
