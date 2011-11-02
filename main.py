@@ -244,6 +244,14 @@ class EquationStruct:
         self.left = left
         self.right = right
 
+class Expr:
+    def __init__(self,op,args=None):
+        self.op = op
+        if args:
+            self.args = args
+        else :
+            self.args = []
+
 #retrieveValues - takes in a tree of nodes, goes through each branch,
 #finds the values at the end of each branch, and maps it 
 def retrieveSigValues(n, sigFlag, opsFlag, processed):
@@ -282,23 +290,22 @@ def retrieveEqNodes(n, equations):
         if (len(n.children) > 1) :
             retrieveEqNodes(n.children[1], equations)
 
-def retrieveTermValues(term, opsFlag, termMap):
+def retrieveTermValues(term, opsFlag, expr):
     if (isinstance(term.type, str) and term.type == 'empty') :
         pass
     elif (term.value is None) :
         if (term.type == 'operation') :
             opsFlag = True
-        retrieveTermValues(term.children[0], opsFlag, termMap)
+        retrieveTermValues(term.children[0], opsFlag, expr)
         if(len(term.children) > 1) :
-            retrieveTermValues(term.children[1], False, termMap)
+            retrieveTermValues(term.children[1], False, expr)
     else :
         if (isinstance(term.type, str)):
             if(term.type == 'identifier'):
                 if(opsFlag):
-                    termMap.append(dict({'operation': term.value}))
+                    expr.args.append(Expr(term.value))
                 else:
-                    termMap.append(dict({'args': term.value}))
-
+                    expr.args.append(term.value)
 
 #uses the dictionaries we made in order to create the
 #signature and operation structures 
@@ -356,19 +363,27 @@ def retrieveEquations(tree):
     equations = []
     retrieveEqNodes(tree, equations)
 
-    leftMap = []
-    rightMap = []
+    leftExpr = Expr("term")
+    rightExpr = Expr("term")
 
     listOfEquationStructs = []
     for eq in equations:
         opsFlag = False
-        retrieveTermValues(eq.children[0], opsFlag, leftMap)
+        retrieveTermValues(eq.children[0], opsFlag, leftExpr)
         opsFlag = False
-        retrieveTermValues(eq.children[1], opsFlag, rightMap)
-        listOfEquationStructs.append(EquationStruct(leftMap, rightMap))
-        leftMap = []
-        rightMap = []
+        retrieveTermValues(eq.children[1], opsFlag, rightExpr)
+        listOfEquationStructs.append(EquationStruct(leftExpr, rightExpr))
+        leftExpr = Expr("term")
+        rightExpr = Expr("term")
     return listOfEquationStructs
+
+def printExpr(expr) :
+    print "op: " + expr.op
+    for arg in expr.args :
+        if isinstance(arg, Expr) : 
+            printExpr(arg)
+        else :
+            print "arg: " + arg
 
 #largely assumes the method with no args and returns the typename is the base
 def findBaseCase(sigStruct):
@@ -447,9 +462,6 @@ def printNumIterExpressions(num, sigstruct):
         num -= 1
     return o
 
-def mapAlgebraicSpecs(tree):
-    pass
-    
 
 # Checks to make sure an input file and output file are given
 if len(sys.argv) < 3:
@@ -485,10 +497,10 @@ for sig in signatures :
     output.write(unicode(expressions))
 
 for eq in equations :
-    for l in eq.left :
-        print l
-    for r in eq.right :
-        print r
+    print "left:"
+    printExpr(eq.left)
+    print "right:"
+    printExpr(eq.right)
 
 file.close()
 output.close()
