@@ -229,7 +229,6 @@ class Node:
             self.children = []
         self.value = value 
 
-
 class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
@@ -253,6 +252,20 @@ class Expr:
             self.args = args
         else :
             self.args = []
+    
+    # class method that turns Expr objects 
+    # into Scheme expressions :-) 
+    def toSexpr(self):
+        sexpr = "(" +  str(self.op)
+
+        for arg in self.args:
+            if (isinstance(arg['Value'], Expr)): 
+                sexpr += " " + arg['Value'].toSexpr()
+            else: 
+                sexpr += " " + str(arg['Value']) 
+
+        sexpr += ")"     
+        return sexpr
 
 class ReducedExpr:
     def __init__(self, expr, reduct):
@@ -400,13 +413,14 @@ def retrieveEquations(tree):
         rightExpr = Expr("term")
     return listOfEquationStructs
 
-def printExpr(expr) :
-    print "op: " + expr.op
-    for arg in expr.args :
-        if isinstance(arg, Expr) : 
-            printExpr(arg)
-        else :
-            print "arg: " + arg
+##not deleting in case you need for debug
+#def printExpr(expr) :
+#    print "op: " + expr.op
+#    for arg in expr.args :
+#        if isinstance(arg.get('Value'), Expr) : 
+#            printExpr(arg)
+#        else :
+#            print "arg: " + arg[0].get('Value')
 
 def equalExpr(expr1, expr2):
     if (expr1.op != expr2.op) :
@@ -452,7 +466,7 @@ def randomTypeGen(type) :
     
 def generateBaseExpressions(sigstruct, base):
     generatedExprs = defaultdict(list)
-        # turn each signature into a Scheme Expression
+    # turn each signature into a Scheme Expression
     for spec in sigstruct.opspecs:
         expr = Expr(spec.operation)
         for arg in spec.args:
@@ -465,7 +479,6 @@ def generateBaseExpressions(sigstruct, base):
         if spec.output in ["int","boolean","string","char"] :
             for n in range(0, 3):
                 generatedExprs[spec.output].append(randomTypeGen(spec.output))
-    
     return generatedExprs
     
 def generateNonBaseExpressions(exprs, sigstruct, base):
@@ -477,18 +490,26 @@ def generateNonBaseExpressions(exprs, sigstruct, base):
             for arg in spec.args :
                 newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
             generatedExprs[spec.output].append(newExpr)
-                
     return generatedExprs
 
-'''
 def printNumIterExpressions(num, sigstruct, base):
 
     iter = generateBaseExpressions(sigstruct, base)
-    num -= 1
+    # adding base cases to the output file
+    for key in iter:
+        for item in iter[key]: 
+            if (isinstance(item, Expr)):
+                baseIterExpr = item.toSexpr() + '\n'
+                output.write(unicode(baseIterExpr))
+    
     while num > 0 :
         iter = generateNonBaseExpressions(iter, sigstruct, base)
+        # ading non base cases to the output file 
+        for key in iter:
+            for i in iter[key]:
+                iterExpr = i.toSexpr() + '\n'
+                output.write(unicode(iterExpr))
         num -= 1
-'''
 
 
 # Checks to make sure an input file and output file are given
@@ -527,12 +548,11 @@ equations = retrieveEquations(yada.children[1])
 
 expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "s"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
-print equalExpr(expr1,expr2)
+#print equalExpr(expr1,expr2)
 
-#for sig in signatures :
-#    base = findBaseCase(sig)
-#    expressions = printNumIterExpressions(10, sig, base)
-#    output.write(unicode(expressions))
+for sig in signatures :
+    base = findBaseCase(sig)
+    printNumIterExpressions(10, sig, base)
 
 #for eq in equations :
 #    print "left:"
