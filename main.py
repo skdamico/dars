@@ -4,13 +4,15 @@ import Queue
 import codecs, sys
 import random
 import string
+from collections import defaultdict
 
 tokens = darslex.tokens
 
 #Rewrites System.out to unicode 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-#Global variable to be used in multiple functions
-o = ''
+
+#globals
+signatures = []
 
 #Define grammar rules for the parser
 def p_input(p):
@@ -252,6 +254,11 @@ class Expr:
         else :
             self.args = []
 
+class ReducedExpr:
+    def __init__(self, expr, reduct):
+        self.expr = expr
+        self.reduct = reduct
+        
 #retrieveValues - takes in a tree of nodes, goes through each branch,
 #finds the values at the end of each branch, and maps it 
 def retrieveSigValues(n, sigFlag, opsFlag, processed):
@@ -303,9 +310,25 @@ def retrieveTermValues(term, opsFlag, expr):
         if (isinstance(term.type, str)):
             if(term.type == 'identifier'):
                 if(opsFlag):
-                    expr.args.append(Expr(term.value))
+                    outType = findOutputType(term.value)
+                    expr.args.append(dict({'ArgType' : outType, 'Value' : Expr(term.value)}))
                 else:
-                    expr.args.append(term.value)
+                    argType = findArgType(expr.op, len(expr.args))
+                    expr.args.append(dict({'ArgType' : argType, 'Value' : term.value}))
+
+def findOutputType(op):
+    global signatures
+    for sig in signatures:
+        for opspec in sig.opspecs:
+            if(opspec.operation == op):
+                return opspec.output
+
+def findArgType(op, argIndex):
+    global signatures
+    for sig in signatures:
+        for opspec in sig.opspecs:
+            if(opspec.operation == op):
+                return opspec.args[argIndex]      
 
 #uses the dictionaries we made in order to create the
 #signature and operation structures 
@@ -385,22 +408,37 @@ def printExpr(expr) :
         else :
             print "arg: " + arg
 
+def equalExpr(expr1, expr2):
+    if (expr1.op != expr2.op) :
+        return False
+    else :
+        if (len(expr1.args) == 0 and len(expr2.args) == 0):
+            return True
+        elif (len(expr1.args) == len(expr2.args)):
+            for i in range(len(expr1.args)) :
+                if (isinstance(expr1.args[i].get('Value'), Expr) and isinstance(expr2.args[i].get('Value'), Expr)):
+                    equalExpr(expr1.args[i].get('Value'),expr2.args[i].get('Value'))
+                else :
+                    print (expr1.args[i].get('ArgType') == expr2.args[i].get('ArgType'))
+                    return (expr1.args[i].get('ArgType') == expr2.args[i].get('ArgType'))
+        else:
+            return False
+                
 #largely assumes the method with no args and returns the typename is the base
 def findBaseCase(sigStruct):
     opSpecs = sigStruct.opspecs  
     for spec in opSpecs:
         if len(spec.args) == 0 :
             if (spec.output == sigStruct.typename) :
-                return spec.operation
+                return Expr(spec.operation)
     sys.exit('No base case found for ' + sigStruct.typename)
-
+'''
 def mapExprToTypes(exprs):
-    from collections import defaultdict
     remappedExprs = defaultdict(list)
     for k, v in exprs.iteritems():
         remappedExprs[v].append(k)
     return remappedExprs
-
+'''
 def randomTypeGen(type) :
     if type == 'int' :
         return str(random.randrange(0,99999999999))
@@ -413,54 +451,45 @@ def randomTypeGen(type) :
         randomString = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,10)))
         return repr(unicode(randomString, "utf-8" ))
     
-def generateBaseExpressions(sigstruct, type):
-    global o
-    generatedExprs = dict()
+def generateBaseExpressions(sigstruct, base):
+    generatedExprs = defaultdict(list)
         # turn each signature into a Scheme Expression
     for spec in sigstruct.opspecs:
-        expr =  "(" + spec.operation + ' '
+        expr = Expr(spec.operation)
         for arg in spec.args:
             if (arg == sigstruct.typename) :
-                expr += type + ' '
+                expr.args.append(dict({'ArgType' : arg, 'Value' : base}))
             else: 
-                expr += str(randomTypeGen(arg)) + ' '
-        expr = string.strip(expr)
-        expr += ')'
-        generatedExprs[expr] = spec.output
+                expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
+        generatedExprs[spec.output].append(expr)
         # generate some random bases for primitives
         if spec.output in ["int","boolean","string","char"] :
             for n in range(0, 3):
-                generatedExprs[randomTypeGen(spec.output)] = spec.output
-        o += expr + '\n'
+                generatedExprs[spec.output].append(randomTypeGen(spec.output))
     
-    return mapExprToTypes(generatedExprs)
+    return generatedExprs
     
-def generateNonBaseExpressions(exprs, sigstruct):
-    global o
-    generatedExprs = dict()
+def generateNonBaseExpressions(exprs, sigstruct, base):
+    generatedExprs = defaultdict(list)
     specs = sigstruct.opspecs
-    base = findBaseCase(sigstruct).split('(', 2)[0]
     for spec in specs:
-        if (spec.operation != base) :
-            newExpr = "(" + spec.operation + ' '
+        if (spec.operation != base.op) :
+            newExpr = Expr(spec.operation)
             for arg in spec.args :
-                newExpr += random.choice(exprs[arg]) + ' '
-            newExpr = string.strip(newExpr)
-            newExpr += ') '
-            generatedExprs[newExpr] = spec.output
-            o += newExpr + '\n'
-    
-    return mapExprToTypes(generatedExprs)
+                newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
+            generatedExprs[spec.output].append(newExpr)
+                
+    return generatedExprs
 
-def printNumIterExpressions(num, sigstruct):
-    global o
-    o = ''
-    iter = generateBaseExpressions(sigstruct, findBaseCase(sig))
+'''
+def printNumIterExpressions(num, sigstruct, base):
+
+    iter = generateBaseExpressions(sigstruct, base)
     num -= 1
     while num > 0 :
-        iter = generateNonBaseExpressions(iter, sig)
+        iter = generateNonBaseExpressions(iter, sigstruct, base)
         num -= 1
-    return o
+'''
 
 
 # Checks to make sure an input file and output file are given
@@ -489,18 +518,28 @@ yacc.yacc(start='input')
 #    print tok
 
 yada = yacc.parse(inp)
+
 signatures = retrieveSignatures(yada.children[0])
+
+if(len(signatures) < 1):
+    sys.exit("No signatures found")
+
 equations = retrieveEquations(yada.children[1])
 
-for sig in signatures :
-    expressions = printNumIterExpressions(10, sig)
-    output.write(unicode(expressions))
+expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
+expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "s"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
+print equalExpr(expr1,expr2)
 
-for eq in equations :
-    print "left:"
-    printExpr(eq.left)
-    print "right:"
-    printExpr(eq.right)
+#for sig in signatures :
+#    base = findBaseCase(sig)
+#    expressions = printNumIterExpressions(10, sig, base)
+#    output.write(unicode(expressions))
+
+#for eq in equations :
+#    print "left:"
+#    printExpr(eq.left)
+#   print "right:"
+#    printExpr(eq.right)
 
 file.close()
 output.close()
