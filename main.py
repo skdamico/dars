@@ -13,6 +13,7 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 #globals
 signatures = []
+equations = []
 
 #Define grammar rules for the parser
 def p_input(p):
@@ -297,24 +298,28 @@ def retrieveEqNodes(n, equations):
         if (len(n.children) > 1) :
             retrieveEqNodes(n.children[1], equations)
 
-def retrieveTermValues(term, opsFlag, expr):
-    if (isinstance(term.type, str) and term.type == 'empty') :
+def retrieveTermValues(term, expr):
+    if(isinstance(term.type, str) and term.type == 'empty'):
         pass
-    elif (term.value is None) :
-        if (term.type == 'operation') :
-            opsFlag = True
-        retrieveTermValues(term.children[0], opsFlag, expr)
-        if(len(term.children) > 1) :
-            retrieveTermValues(term.children[1], False, expr)
-    else :
-        if (isinstance(term.type, str)):
-            if(term.type == 'identifier'):
-                if(opsFlag):
-                    outType = findOutputType(term.value)
-                    expr.args.append(dict({'ArgType' : outType, 'Value' : Expr(term.value)}))
-                else:
-                    argType = findArgType(expr.op, len(expr.args))
-                    expr.args.append(dict({'ArgType' : argType, 'Value' : term.value}))
+    elif(term.value is None):
+        if(term.type == 'term'):
+            if(term.children[0].type == 'operation'):
+                newarg = createOpArg(term.children[0])
+                expr.args.append(newarg)
+                retrieveTermValues(term.children[1], expr.args[0].get('Value'))
+            elif(term.children[0].type == 'identifier'):
+                argType = findArgType(expr.op, len(expr.args))
+                expr.args.append(dict({'ArgType' : argType, 'Value' : term.children[0].value}))
+        else:
+            retrieveTermValues(term.children[0], expr)
+            if(len(term.children) > 1):
+                retrieveTermValues(term.children[1], expr)
+             
+def createOpArg(expr):
+    if(expr.type == 'operation'):
+        return createOpArg(expr.children[0])
+    elif(expr.type == 'identifier'):
+        return dict({'ArgType' : findOutputType(expr.value), 'Value' : Expr(expr.value)})
 
 def findOutputType(op):
     global signatures
@@ -391,22 +396,42 @@ def retrieveEquations(tree):
 
     listOfEquationStructs = []
     for eq in equations:
-        opsFlag = False
-        retrieveTermValues(eq.children[0], opsFlag, leftExpr)
-        opsFlag = False
-        retrieveTermValues(eq.children[1], opsFlag, rightExpr)
-        listOfEquationStructs.append(EquationStruct(leftExpr, rightExpr))
+        retrieveTermValues(eq.children[0], leftExpr)
+        retrieveTermValues(eq.children[1], rightExpr)
+        
+        # Append the Equation to list, but remove the top level "term" op
+        listOfEquationStructs.append(EquationStruct(leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value')))
         leftExpr = Expr("term")
         rightExpr = Expr("term")
     return listOfEquationStructs
 
 def printExpr(expr) :
-    print "op: " + expr.op
-    for arg in expr.args :
-        if isinstance(arg, Expr) : 
-            printExpr(arg)
-        else :
-            print "arg: " + arg
+    if(isinstance(expr, Expr)):
+        print "op: " + expr.op
+        for arg in expr.args :
+            print "argnum: "+ str(len(expr.args))
+            if isinstance(arg.get('Value'), Expr) : 
+                printExpr(arg.get('Value'))
+            else :
+                print "arg: " + arg.get('Value')
+    else:
+        print expr
+
+
+def equalExprToTerm(expr, term):
+    if (expr.op != term.op) :
+        return False
+    else :
+        if (len(expr.args) == 0 and len(term.args) == 0):
+            return True
+        elif (len(expr.args) == len(term.args)):
+            for i in range(len(expr.args)) :
+                if (isinstance(expr.args[i].get('Value'), Expr) and isinstance(term.args[i].get('Value'), Expr)):
+                    return equalExprToTerm(expr.args[i].get('Value'),term.args[i].get('Value'))
+                else :
+                    return (expr.args[i].get('ArgType') == term.args[i].get('ArgType'))
+        else:
+            return False
 
 def equalExpr(expr1, expr2):
     if (expr1.op != expr2.op) :
@@ -419,7 +444,7 @@ def equalExpr(expr1, expr2):
                 if (isinstance(expr1.args[i].get('Value'), Expr) and isinstance(expr2.args[i].get('Value'), Expr)):
                     return equalExpr(expr1.args[i].get('Value'),expr2.args[i].get('Value'))
                 else :
-                    return (expr1.args[i].get('ArgType') == expr2.args[i].get('ArgType'))
+                    return (expr1.args[i].get('Value') == expr2.args[i].get('Value'))
         else:
             return False
                 
@@ -431,13 +456,7 @@ def findBaseCase(sigStruct):
             if (spec.output == sigStruct.typename) :
                 return Expr(spec.operation)
     sys.exit('No base case found for ' + sigStruct.typename)
-'''
-def mapExprToTypes(exprs):
-    remappedExprs = defaultdict(list)
-    for k, v in exprs.iteritems():
-        remappedExprs[v].append(k)
-    return remappedExprs
-'''
+
 def randomTypeGen(type) :
     if type == 'int' :
         return str(random.randrange(0,99999999999))
@@ -468,27 +487,75 @@ def generateBaseExpressions(sigstruct, base):
     
     return generatedExprs
     
-def generateNonBaseExpressions(exprs, sigstruct, base):
+def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
     generatedExprs = defaultdict(list)
     specs = sigstruct.opspecs
     for spec in specs:
         if (spec.operation != base.op) :
             newExpr = Expr(spec.operation)
+            reducedExpr = newExpr
             for arg in spec.args :
-                newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
-            generatedExprs[spec.output].append(newExpr)
-                
-    return generatedExprs
+                randomArg = random.choice(exprs[arg])
+                newExpr.args.append(dict({'ArgType' : arg, 'Value' : randomArg}))
 
-'''
-def printNumIterExpressions(num, sigstruct, base):
+                reducedRandomArg = findArgReduction(randomArg, reducedExprs)
+                reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
 
-    iter = generateBaseExpressions(sigstruct, base)
+            reduction = reduceExpr(newExpr)
+            if(reduction):
+                generatedExprs[spec.output].append(newExpr)
+                reducedExprs.append(reduction)
+
+def findArgReduction(arg, reducedExprs):
+    for rexpr in reducedExprs:
+        if(equalExpr(arg, rexpr.expr)):
+            return rexpr.reduct
+
+
+def getReduction(expr, lterm, rterm):
+    if (isinstance(lterm, Expr) and isinstance(rterm, Expr)):
+        if(equalExpr(lterm,rterm)):
+            return expr
+        else:
+            for i in range(len(expr.args)):
+                r = getReduction(expr.args[i].get('Value'), lterm.args[i].get('Value'), rterm)
+                if(r):
+                    return r
+    elif (isinstance(lterm, unicode) and isinstance(rterm, unicode)):
+        if(lterm == rterm):
+            return expr
+    else:
+        if(isinstance(expr, Expr)):
+            for i in range(len(expr.args)):
+                r = getReduction(expr.args[i].get('Value'), lterm.args[i].get('Value'), rterm)
+                if(r):
+                    return r
+
+def reduceExpr(expr):
+    global equations
+    for eq in equations:
+        # check equality to term
+        if equalExprToTerm(expr, eq.left):
+            r = getReduction(expr, eq.left, eq.right)
+            return ReducedExpr(expr, r)
+   
+
+def enumExpressions(num, sig, base):
+    exprs = generateBaseExpressions(sig, base)
+    
+    reducedExprs = []
     num -= 1
     while num > 0 :
-        iter = generateNonBaseExpressions(iter, sigstruct, base)
+        generateNonBaseExpressions(exprs, reducedExprs, sig, base)
         num -= 1
-'''
+
+#def printNumIterExpressions(num, sigstruct, base):
+#
+#    iter = generateBaseExpressions(sigstruct, base)
+#    num -= 1
+#    while num > 0 :
+#        iter = generateNonBaseExpressions(iter, sigstruct, base)
+#        num -= 1
 
 
 # Checks to make sure an input file and output file are given
@@ -523,21 +590,21 @@ signatures = retrieveSignatures(yada.children[0])
 if(len(signatures) < 1):
     sys.exit("No signatures found")
 
-equations = retrieveEquations(yada.children[1])
+equations = retrieveEquations(yada.children[1]);
 
-expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
-expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "s"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
-print equalExpr(expr1,expr2)
+#expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
+#expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "s"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
+#print reduceExpr(expr1).reduct
 
-#for sig in signatures :
-#    base = findBaseCase(sig)
-#    expressions = printNumIterExpressions(10, sig, base)
-#    output.write(unicode(expressions))
+for sig in signatures :
+    base = findBaseCase(sig)
+    expressions = enumExpressions(4, sig, base)
+    output.write(unicode(expressions))
 
 #for eq in equations :
 #    print "left:"
 #    printExpr(eq.left)
-#   print "right:"
+#    print "right:"
 #    printExpr(eq.right)
 
 file.close()
