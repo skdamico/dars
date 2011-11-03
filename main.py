@@ -599,11 +599,6 @@ def generateBaseExpressions(sigstruct, base):
                 expr.args.append(dict({'ArgType' : arg, 'Value' : base}))
             else: 
                 expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
-            
-        
-        #reduction = reduceExpr(expr)
-        #if(reduction):
-        #    reducedExprs.append(ReducedExpr(expr, reduction))    
                 
         generatedExprs[spec.output].append(expr)
         # generate some random bases for primitives
@@ -617,32 +612,15 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
     for spec in specs:
         if (spec.operation != base.op) :
             newExpr = Expr(spec.operation)
-            reducedExpr = Expr(spec.operation)
             for arg in spec.args :
-                randomArg = random.choice(exprs[arg])
-                newExpr.args.append(dict({'ArgType' : arg, 'Value' : randomArg}))
-                
-                if(isinstance(randomArg, Expr)):
-                    reducedRandomArg = findArgReduction(randomArg, reducedExprs)
-                    if(reducedRandomArg is None):
-                        reducedRandomArg = reduceExpr(randomArg)
-                        if(reducedRandomArg):
-                            reducedExprs.append(ReducedExpr(randomArg, reducedRandomArg))
-                            reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
-                    reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
-                else:
-                    reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : randomArg}))
+                newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
 
-            reduction = reduceExpr(reducedExpr)
+            reduction = reduceExpr(newExpr)
             if(reduction):
-                reducedExprs.append(ReducedExpr(reducedExpr, reduction))
+                if(isinstance(reduction, str) or (not equalExpr(newExpr,reduction))):
+                    reducedExprs.append(ReducedExpr(newExpr, reduction))
                 
             exprs[spec.output].append(newExpr)
-
-def findArgReduction(arg, reducedExprs):
-    for rexpr in reducedExprs:
-        if(equalExpr(arg, rexpr.expr)):
-            return rexpr.reduct
 
 def getReduction(expr, lterm, rterm):
     if (isinstance(lterm, Expr) and isinstance(rterm, Expr)):
@@ -664,29 +642,29 @@ def getReduction(expr, lterm, rterm):
                     return r
 
 def reduceExpr(expr):
+    if(isinstance(expr, Expr)):
+        for arg in expr.args:
+            if(isinstance(arg.get('Value'),Expr)):
+                reduceExpr(arg.get('Value'))
+            else :
+                return arg.get('Value')
+
+        reduction = reduceSingleExpr(expr)
+
+        if(reduction):
+            return reduction
+        else:
+            return expr
+
+def reduceSingleExpr(expr):
     global equations
-    #for arg in expr.args:
-        #if(isinstance(arg, Expr) and len(arg.args) > 0):
-            #reduceExpr(arg)
     
     for eq in equations:
         # check equality to term
         if equalExprToTerm(expr, eq.left):
             r = getReduction(expr, eq.left, eq.right)
-            #if (isinstance(r, Expr)) :
-              #  for arg in r.args:
-               #     reduceExpr(arg)
             return r
-   
 
-def enumExpressions(num, sig, base):
-    exprs = generateBaseExpressions(sig, base)
-    
-    reducedExprs = []
-    num -= 1
-    while num > 0 :
-        generateNonBaseExpressions(exprs, reducedExprs, sig, base)
-        num -= 1
 
 def printNumIterExpressions(num, sig, base):
     reducedExprs = []
@@ -780,8 +758,9 @@ for eq in equations:
 
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
-#expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "s"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
-#print reduceExpr(expr1).reduct
+#expr2 = Expr('pop', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "Expr(push, [dict({'ArgType' : })"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
+#print reduceExpr(expr1)
+
 
 #for sig in signatures :
 #    base = findBaseCase(sig)
