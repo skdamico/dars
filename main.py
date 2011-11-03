@@ -491,6 +491,12 @@ def generateBaseExpressions(sigstruct, base):
                 expr.args.append(dict({'ArgType' : arg, 'Value' : base}))
             else: 
                 expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
+            
+        
+        #reduction = reduceExpr(expr)
+        #if(reduction):
+        #    reducedExprs.append(ReducedExpr(expr, reduction))    
+                
         generatedExprs[spec.output].append(expr)
         # generate some random bases for primitives
         if spec.output in ["int","boolean","string","char"] :
@@ -499,7 +505,6 @@ def generateBaseExpressions(sigstruct, base):
     return generatedExprs
     
 def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
-    generatedExprs = defaultdict(list)
     specs = sigstruct.opspecs
     for spec in specs:
         if (spec.operation != base.op) :
@@ -511,22 +516,25 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
                 
                 if(isinstance(randomArg, Expr)):
                     reducedRandomArg = findArgReduction(randomArg, reducedExprs)
+                    if(reducedRandomArg is None):
+                        reducedRandomArg = reduceExpr(randomArg)
+                        if(reducedRandomArg):
+                            reducedExprs.append(ReducedExpr(randomArg, reducedRandomArg))
+                            reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
                     reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
                 else:
                     reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : randomArg}))
 
-            reduction = reduceExpr(newExpr)
+            reduction = reduceExpr(reducedExpr)
             if(reduction):
-                generatedExprs[spec.output].append(newExpr)
-                reducedExprs.append(reduction)
-            else:
-                generatedExprs[spec.output].append(newExpr)
+                reducedExprs.append(ReducedExpr(reducedExpr, reduction))
+                
+            exprs[spec.output].append(newExpr)
 
 def findArgReduction(arg, reducedExprs):
     for rexpr in reducedExprs:
         if(equalExpr(arg, rexpr.expr)):
             return rexpr.reduct
-
 
 def getReduction(expr, lterm, rterm):
     if (isinstance(lterm, Expr) and isinstance(rterm, Expr)):
@@ -549,11 +557,18 @@ def getReduction(expr, lterm, rterm):
 
 def reduceExpr(expr):
     global equations
+    #for arg in expr.args:
+        #if(isinstance(arg, Expr) and len(arg.args) > 0):
+            #reduceExpr(arg)
+    
     for eq in equations:
         # check equality to term
         if equalExprToTerm(expr, eq.left):
             r = getReduction(expr, eq.left, eq.right)
-            return ReducedExpr(expr, r)
+            #if (isinstance(r, Expr)) :
+              #  for arg in r.args:
+               #     reduceExpr(arg)
+            return r
    
 
 def enumExpressions(num, sig, base):
@@ -574,9 +589,9 @@ def enumExpressions(num, sig, base):
 #        num -= 1
 
 def printNumIterExpressions(num, sig, base):
-    iter = generateBaseExpressions(sig, base)
-    
     reducedExprs = []
+    iter = generateBaseExpressions(sig, base)
+
     num -= 1 
     while num > 0 :
         generateNonBaseExpressions(iter, reducedExprs, sig, base)
@@ -631,7 +646,7 @@ equations = retrieveEquations(yada.children[1]);
 
 for sig in signatures :
     base = findBaseCase(sig)
-    printNumIterExpressions(10, sig, base)
+    printNumIterExpressions(20, sig, base)
 
 #for eq in equations :
 #    print "left:"
