@@ -230,7 +230,6 @@ class Node:
             self.children = []
         self.value = value 
 
-
 class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
@@ -254,6 +253,20 @@ class Expr:
             self.args = args
         else :
             self.args = []
+    
+    # class method that turns Expr objects 
+    # into Scheme expressions :-) 
+    def toSexpr(self):
+        sexpr = "(" +  str(self.op)
+
+        for arg in self.args:
+            if (isinstance(arg['Value'], Expr)): 
+                sexpr += " " + arg['Value'].toSexpr()
+            else: 
+                sexpr += " " + str(arg['Value']) 
+
+        sexpr += ")"     
+        return sexpr
 
 class ReducedExpr:
     def __init__(self, expr, reduct):
@@ -409,7 +422,6 @@ def printExpr(expr) :
     if(isinstance(expr, Expr)):
         print "op: " + expr.op
         for arg in expr.args :
-            print "argnum: "+ str(len(expr.args))
             if isinstance(arg.get('Value'), Expr) : 
                 printExpr(arg.get('Value'))
             else :
@@ -471,7 +483,7 @@ def randomTypeGen(type) :
     
 def generateBaseExpressions(sigstruct, base):
     generatedExprs = defaultdict(list)
-        # turn each signature into a Scheme Expression
+    # turn each signature into a Scheme Expression
     for spec in sigstruct.opspecs:
         expr = Expr(spec.operation)
         for arg in spec.args:
@@ -484,7 +496,6 @@ def generateBaseExpressions(sigstruct, base):
         if spec.output in ["int","boolean","string","char"] :
             for n in range(0, 3):
                 generatedExprs[spec.output].append(randomTypeGen(spec.output))
-    
     return generatedExprs
     
 def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
@@ -493,18 +504,23 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
     for spec in specs:
         if (spec.operation != base.op) :
             newExpr = Expr(spec.operation)
-            reducedExpr = newExpr
+            reducedExpr = Expr(spec.operation)
             for arg in spec.args :
                 randomArg = random.choice(exprs[arg])
                 newExpr.args.append(dict({'ArgType' : arg, 'Value' : randomArg}))
-
-                reducedRandomArg = findArgReduction(randomArg, reducedExprs)
-                reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
+                
+                if(isinstance(randomArg, Expr)):
+                    reducedRandomArg = findArgReduction(randomArg, reducedExprs)
+                    reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : reducedRandomArg}))
+                else:
+                    reducedExpr.args.append(dict({'ArgType' : arg, 'Value' : randomArg}))
 
             reduction = reduceExpr(newExpr)
             if(reduction):
                 generatedExprs[spec.output].append(newExpr)
                 reducedExprs.append(reduction)
+            else:
+                generatedExprs[spec.output].append(newExpr)
 
 def findArgReduction(arg, reducedExprs):
     for rexpr in reducedExprs:
@@ -557,6 +573,23 @@ def enumExpressions(num, sig, base):
 #        iter = generateNonBaseExpressions(iter, sigstruct, base)
 #        num -= 1
 
+def printNumIterExpressions(num, sig, base):
+    iter = generateBaseExpressions(sig, base)
+    
+    reducedExprs = []
+    num -= 1 
+    while num > 0 :
+        generateNonBaseExpressions(iter, reducedExprs, sig, base)
+        # ading non base cases to the output file 
+        for rexpr in reducedExprs:
+            iterExpr = rexpr.expr.toSexpr() + '\n'
+            if(isinstance(rexpr.reduct, Expr)):
+                iterExpr += rexpr.reduct.toSexpr() + '\n'
+            else:
+                iterExpr += str(rexpr.reduct) + '\n'
+            print iterExpr
+            output.write(unicode(iterExpr))
+        num -= 1
 
 # Checks to make sure an input file and output file are given
 if len(sys.argv) < 3:
@@ -598,8 +631,7 @@ equations = retrieveEquations(yada.children[1]);
 
 for sig in signatures :
     base = findBaseCase(sig)
-    expressions = enumExpressions(4, sig, base)
-    output.write(unicode(expressions))
+    printNumIterExpressions(10, sig, base)
 
 #for eq in equations :
 #    print "left:"
