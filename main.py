@@ -15,6 +15,15 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 signatures = []
 equations = []
 
+#############################################
+#############################################
+####  Defining Grammar                  #####
+#############################################
+#############################################
+
+
+
+
 #Define grammar rules for the parser
 def p_input(p):
     'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
@@ -220,6 +229,13 @@ def p_empty(p):
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
+#############################################
+#############################################
+####  Support Classes                   #####
+#############################################
+#############################################
+
+
 #Simple implementation of an AST node
 class Node:
     def __init__(self,type,children=None,value=None):
@@ -234,7 +250,23 @@ class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
         self.opspecs = opspecs
+        
+    def getAllOpNames(self):
+        opNames = []
 
+        for opspec in self.opspecs:
+            opNames.append( opspec.operation )
+
+        return opNames
+
+    def containsOperation(self, opName):
+
+        if (opName in self.getAllOpNames()):
+            return True
+
+        return False
+
+    
 class OperationSpecStruct:
     def __init__(self,operation,args,output):
         self.operation = operation
@@ -245,6 +277,57 @@ class EquationStruct:
     def __init__(self,left,right):
         self.left = left
         self.right = right
+
+    def getOpList(self):
+        ops = []
+
+        if isinstance( self.left, Expr ):
+            ops.append( self.left.findAllOps() )
+
+        if isinstance( self.right, Expr ):
+            ops.append( self.right.findAllOps() )
+
+        return ops 
+
+
+    def validIds(self):
+        leftIds     = []
+        rightIds    = []
+
+        if isinstance( self.left, Expr ):
+            if containDups( self.left.findAllValues() ):
+                return False
+
+            leftIds += self.left.findAllValues()
+        else:
+            leftIds.append( self.left )
+
+        if isinstance( self.right, Expr ):
+            rightIds += self.right.findAllValues()
+        else:
+            rightIds.append( self.right )
+
+        for iden in rightIds:
+            print iden
+            if not( iden in leftIds ):
+                return False
+
+        return True
+
+    def validOps(self):
+        results = []
+
+        for opList in self.getOpList():
+            for op in opList:
+                for sig in signatures:
+                   results.append( sig.containsOperation(op) )
+        
+        return not( False in results )
+
+
+    def valid(self):
+        return self.validIds() and self.validOps()
+
 
 class Expr:
     def __init__(self,op,args=None):
@@ -268,11 +351,42 @@ class Expr:
         sexpr += ")"     
         return sexpr
 
+    # returns all operations used in the Expr
+    def findAllOps(self):
+        ops = [self.op]
+
+        for arg in self.args:
+            if ( isinstance( arg['Value'], Expr )):
+                ops += arg['Value'].findAllOps()
+
+        return ops
+
+    # returns all values within the Expr
+    def findAllValues(self):
+        vals = []
+
+        for arg in self.args:
+            if( isinstance( arg['Value'], Expr ) ):
+                vals += arg['Value'].findAllValues()
+            else:
+                vals += arg['Value']
+
+        return vals
+
 class ReducedExpr:
     def __init__(self, expr, reduct):
         self.expr = expr
         self.reduct = reduct
         
+
+#############################################
+#############################################
+####  Standalone Functions              #####
+#############################################
+#############################################
+
+
+
 #retrieveValues - takes in a tree of nodes, goes through each branch,
 #finds the values at the end of each branch, and maps it 
 def retrieveSigValues(n, sigFlag, opsFlag, processed):
@@ -412,23 +526,16 @@ def retrieveEquations(tree):
         retrieveTermValues(eq.children[0], leftExpr)
         retrieveTermValues(eq.children[1], rightExpr)
         
-        # Append the Equation to list, but remove the top level "term" op
-        listOfEquationStructs.append(EquationStruct(leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value')))
+        equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
+
+        if equa.valid():
+            # Append the Equation to list, but remove the top level "term" op
+            listOfEquationStructs.append( equa )
+
         leftExpr = Expr("term")
         rightExpr = Expr("term")
+
     return listOfEquationStructs
-
-def printExpr(expr) :
-    if(isinstance(expr, Expr)):
-        print "op: " + expr.op
-        for arg in expr.args :
-            if isinstance(arg.get('Value'), Expr) : 
-                printExpr(arg.get('Value'))
-            else :
-                print "arg: " + arg.get('Value')
-    else:
-        print expr
-
 
 def equalExprToTerm(expr, term):
     if (expr.op != term.op) :
@@ -560,14 +667,6 @@ def reduceSingleExpr(expr):
             return r
 
 
-#def printNumIterExpressions(num, sigstruct, base):
-#
-#    iter = generateBaseExpressions(sigstruct, base)
-#    num -= 1
-#    while num > 0 :
-#        iter = generateNonBaseExpressions(iter, sigstruct, base)
-#        num -= 1
-
 def printNumIterExpressions(num, sig, base):
     reducedExprs = []
     iter = generateBaseExpressions(sig, base)
@@ -585,6 +684,32 @@ def printNumIterExpressions(num, sig, base):
             print iterExpr
             output.write(unicode(iterExpr))
         num -= 1
+
+#############################################
+#############################################
+####  Validation                        #####
+#############################################
+#############################################
+
+
+
+def containDups(collection):
+    seen = set()
+
+    for item in collection:
+        if item in seen:
+            return True
+    
+    return False
+
+
+#############################################
+#############################################
+####  Main Excecution                   #####
+#############################################
+#############################################
+
+
 
 # Checks to make sure an input file and output file are given
 if len(sys.argv) < 3:
@@ -605,20 +730,26 @@ for line in file:
 #lexer.input(inp)
 yacc.yacc(start='input')
 
-# test lexer
-#while True:
-#    tok = lexer.token()
-#    if not tok: break      # No more input
-#    print tok
-
 yada = yacc.parse(inp)
 
 signatures = retrieveSignatures(yada.children[0])
-
-if(len(signatures) < 1):
-    sys.exit("No signatures found")
-
 equations = retrieveEquations(yada.children[1]);
+
+#for eq in equations:
+#    text = ""
+#
+#    if isinstance(eq.left, Expr):
+#        text += eq.left.toSexpr()
+#    else:
+#        text += eq.left
+#
+#    if isinstance(eq.right, Expr):
+#        text += eq.right.toSexpr()
+#    else:
+#        text += eq.right
+#
+#    print text
+
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
@@ -628,12 +759,6 @@ equations = retrieveEquations(yada.children[1]);
 for sig in signatures :
     base = findBaseCase(sig)
     printNumIterExpressions(40, sig, base)
-
-#for eq in equations :
-#    print "left:"
-#    printExpr(eq.left)
-#    print "right:"
-#    printExpr(eq.right)
 
 file.close()
 output.close()
