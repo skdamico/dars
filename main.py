@@ -509,10 +509,10 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
 
             reduction = reduceExpr(newExpr)
             if(reduction):
-                if(isinstance(reduction, str) or (not equalExpr(newExpr,reduction))):
+                if(reduction.isdigit()):
                     reducedExprs.append(ReducedExpr(newExpr, reduction))
-                
             exprs[spec.output].append(newExpr)
+    
 
 def getReduction(expr, lterm, rterm):
     if (isinstance(lterm, Expr) and isinstance(rterm, Expr)):
@@ -535,18 +535,20 @@ def getReduction(expr, lterm, rterm):
 
 def reduceExpr(expr):
     if(isinstance(expr, Expr)):
-        for arg in expr.args:
-            if(isinstance(arg.get('Value'),Expr)):
-                reduceExpr(arg.get('Value'))
-            else :
-                return arg.get('Value')
-
-        reduction = reduceSingleExpr(expr)
-
-        if(reduction):
-            return reduction
+        r = reduceSingleExpr(expr)
+        if(r):
+            if(isinstance(r, Expr)):
+                for i in range(len(r.args)):
+                    r.args[i]['Value'] = reduceExpr(r.args[i]['Value'])
+                return reduceExpr(r)
+            else:
+                return r
         else:
-            return expr
+           for i in range(len(expr.args)):
+               expr.args[i]['Value'] = reduceExpr(expr.args[i]['Value'])
+           return expr
+    else:
+        return expr
 
 def reduceSingleExpr(expr):
     global equations
