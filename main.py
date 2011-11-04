@@ -483,6 +483,8 @@ def determineSignatures(processed):
                 listOfSignatures.append(sig)
                 typename = element.get('signame')
                 listOfOperationSpecs = []
+                args = []
+                foundFirstOperation = False
         elif ('operation' in element) :
             if (not foundFirstOperation) :
                 foundFirstOperation = True
@@ -528,9 +530,9 @@ def retrieveEquations(tree):
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
 
-        if equa.valid():
+        #if equa.valid():
             # Append the Equation to list, but remove the top level "term" op
-            listOfEquationStructs.append( equa )
+        listOfEquationStructs.append( equa )
 
         leftExpr = Expr("term")
         rightExpr = Expr("term")
@@ -572,9 +574,14 @@ def findBaseCase(sigStruct):
     opSpecs = sigStruct.opspecs  
     for spec in opSpecs:
         if len(spec.args) == 0 :
-            if (spec.output == sigStruct.typename) :
-                return Expr(spec.operation)
+            return Expr(spec.operation)
     sys.exit('No base case found for ' + sigStruct.typename)
+
+def findBaseCaseOutput(sigStruct):
+    opSpecs = sigStruct.opspecs
+    for spec in opSpecs:
+        if len(spec.args) == 0 :
+            return spec.output
 
 def randomTypeGen(type) :
     if type == 'int' :
@@ -594,7 +601,7 @@ def generateBaseExpressions(sigstruct, base):
     for spec in sigstruct.opspecs:
         expr = Expr(spec.operation)
         for arg in spec.args:
-            if (arg == sigstruct.typename) :
+            if (arg == findBaseCaseOutput(sigstruct)) :
                 expr.args.append(dict({'ArgType' : arg, 'Value' : base}))
             else: 
                 expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
@@ -758,7 +765,7 @@ equations = retrieveEquations(yada.children[1]);
 
 for sig in signatures :
     base = findBaseCase(sig)
-    printNumIterExpressions(40, sig, base)
+    printNumIterExpressions(20, sig, base)
 
 file.close()
 output.close()

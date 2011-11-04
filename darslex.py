@@ -65,7 +65,7 @@ def t_ADT(t):
     return t
 
 def t_TYPENAME(t):
-    ur'int | boolean | string | character'
+    ur'^[int | boolean | string | character]$'
     return t
 
 def t_ARROW(t):

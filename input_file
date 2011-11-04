@@ -8,6 +8,17 @@ isEmpty: StackInt -> boolean
 push: StackInt * int -> StackInt 
 pop: StackInt -> StackInt 
 
+ADT: SortedSet
+
+emptySet: ->  Set
+adjoin:  Set * int -> Set
+isEmpty:  Set -> boolean
+choose:  Set -> int
+others:  Set -> Set
+union:  Set * Set ->  Set
+intersection:  Set * Set  ->  Set
+toList:  Set ->  List
+
 Equations:
 
 (top (push s n))  =  n
