@@ -1,5 +1,5 @@
 ************************************************************
-***  DOCUMENTATION FOR CS4500 ASSIGNMENT 4 (Version 2)   *** 
+***  DOCUMENTATION FOR CS4500 (Version 3) Assignment 6.1 *** 
 ************************************************************
 
 ****************************************
@@ -20,8 +20,10 @@ Please feel free to contact any of the above email address(es).
 This directory contains the following files and subdirectories:
 
     README                  - this file
-    node.py                 - generates valid test expressions on input ADT
+    main.py                 - generates valid test expressions on input ADT
                               using the generated lexer and parser objects
+    darslex.py              - contains the lexer. Essentially the list of
+                              tokens and token definitions
     cs4500                  - high level script that calls main.py
                               followed by input and output arguments
     lex.py                  - Python module for PLY lexer
@@ -47,7 +49,8 @@ For more documentation on this parser generator:
 ***           REQUIREMENTS           ***
 ****************************************
 
-CS4500 Assignment 4 requires the use a CCIS Linux machine and Python 2.6+
+CS4500 Version 3 (Assignment 6)  requires the use a CCIS Linux machine 
+and Python 2.6+
 
 ****************************************
 ***            HOW TO USE            ***
@@ -66,28 +69,22 @@ EXAMPLE
 ***        BUGS AND PROBLEMS         ***
 ****************************************
 
-This is the second submitted version of CS4500 Assignment 4.
+This is the first submission of CS4500 Version 3 (for assignment 6)
 The following problems exist and will be addressed in the next
 assignment: 
 
     - Identifier evaluates to string rather than Scheme expressions
         This is due to ambigious grammar definitions. Will be addressed
         in future assignments.
-    - The program will not generate expected results when input_file
-        contains multiple signatures.
-        NOTE: Multiple signatures were not a requirement for this 
-        assignment. However, it was identified as a potential issue.
+    - Rewriting system is not robust
+
 
 ****************************************
-***    README FILE REVISION NOTES    ***
+***   CHANGE LOG FOR THIS VERSION    ***
 ****************************************
 
-IMPORTANT NOTES TO GRADER Section updated.
+The following changes have taken place for this version of CS4500:
 
-TEAM CONTACT INFORMATION Section revised.
-
-FILES IN THIS DIRECTORY Section updated. 
-
-
-
-
+    - Added rewriting system for generating equations
+    - Output reducible equations and their value (which is int for this assignment)
+    - Basic equation validation
