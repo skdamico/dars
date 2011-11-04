@@ -479,6 +479,9 @@ def determineSignatures(processed):
                 foundFirstTypeName = True
                 typename = element.get('signame')
             else :
+                output = args.pop()
+                opspec = OperationSpecStruct(operation, args, output)
+                listOfOperationSpecs.append(opspec)
                 sig = SignatureStruct(typename, listOfOperationSpecs)
                 listOfSignatures.append(sig)
                 typename = element.get('signame')
@@ -530,9 +533,9 @@ def retrieveEquations(tree):
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
 
-        #if equa.valid():
+        if equa.valid():
             # Append the Equation to list, but remove the top level "term" op
-        listOfEquationStructs.append( equa )
+            listOfEquationStructs.append( equa )
 
         leftExpr = Expr("term")
         rightExpr = Expr("term")
