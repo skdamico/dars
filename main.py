@@ -260,7 +260,6 @@ class SignatureStruct:
         return opNames
 
     def containsOperation(self, opName):
-
         if (opName in self.getAllOpNames()):
             return True
 
@@ -272,6 +271,22 @@ class OperationSpecStruct:
         self.operation = operation
         self.args = args
         self.output = output 
+
+    def toString(self):
+        string = self.operation + ": "
+        args = []
+        args += self.args
+
+        while ( len(args) > 0 ):
+            arg = args.pop(0)
+            string += arg + " "
+
+            if not( len(args) <= 0 ):
+                string += " * "
+
+        string += "-> " + self.output
+
+        return string
 
 class EquationStruct:
     def __init__(self,left,right):
@@ -289,6 +304,22 @@ class EquationStruct:
 
         return ops 
 
+    def toString(self):
+        text = ""
+
+        if isinstance(self.left, Expr):
+            text += self.left.toSexpr()
+        else:
+            text += self.left
+
+        text += " = "
+    
+        if isinstance(self.right, Expr):
+            text += self.right.toSexpr()
+        else:
+            text += self.right
+
+        return text
 
     def validIds(self):
         leftIds     = []
@@ -308,7 +339,6 @@ class EquationStruct:
             rightIds.append( self.right )
 
         for iden in rightIds:
-            print iden
             if not( iden in leftIds ):
                 return False
 
@@ -319,9 +349,14 @@ class EquationStruct:
 
         for opList in self.getOpList():
             for op in opList:
+                sub_result = []
+
                 for sig in signatures:
-                   results.append( sig.containsOperation(op) )
-        
+                    sub_result.append( sig.containsOperation(op) )
+
+                if not(True in sub_result):
+                    result.append( False )
+
         return not( False in results )
 
 
@@ -532,7 +567,6 @@ def retrieveEquations(tree):
         retrieveTermValues(eq.children[1], rightExpr)
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
-
         if equa.valid():
             # Append the Equation to list, but remove the top level "term" op
             listOfEquationStructs.append( equa )
@@ -745,21 +779,8 @@ yada = yacc.parse(inp)
 signatures = retrieveSignatures(yada.children[0])
 equations = retrieveEquations(yada.children[1]);
 
-#for eq in equations:
-#    text = ""
-#
-#    if isinstance(eq.left, Expr):
-#        text += eq.left.toSexpr()
-#    else:
-#        text += eq.left
-#
-#    if isinstance(eq.right, Expr):
-#        text += eq.right.toSexpr()
-#    else:
-#        text += eq.right
-#
-#    print text
-
+for eq in equations:
+    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
