@@ -509,7 +509,7 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
 
             reduction = reduceExpr(newExpr)
             if(reduction):
-                if(reduction.isdigit()):
+                if(isinstance(reduction, str)):
                     reducedExprs.append(ReducedExpr(newExpr, reduction))
             exprs[spec.output].append(newExpr)
     
@@ -621,13 +621,13 @@ if(len(signatures) < 1):
 equations = retrieveEquations(yada.children[1]);
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
-#expr2 = Expr('pop', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "Expr(push, [dict({'ArgType' : })"}), dict({'ArgType' : "int" ,'Value' : 'n'})])})])
-#print reduceExpr(expr1)
+#expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+#print reduceExpr(expr2)                
 
 
 for sig in signatures :
     base = findBaseCase(sig)
-    printNumIterExpressions(20, sig, base)
+    printNumIterExpressions(40, sig, base)
 
 #for eq in equations :
 #    print "left:"
