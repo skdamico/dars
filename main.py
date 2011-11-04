@@ -21,9 +21,6 @@ equations = []
 #############################################
 #############################################
 
-
-
-
 #Define grammar rules for the parser
 def p_input(p):
     'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
@@ -420,8 +417,6 @@ class ReducedExpr:
 #############################################
 #############################################
 
-
-
 #retrieveValues - takes in a tree of nodes, goes through each branch,
 #finds the values at the end of each branch, and maps it 
 def retrieveSigValues(n, sigFlag, opsFlag, processed):
@@ -725,7 +720,6 @@ def printNumIterExpressions(num, sig, base):
                 iterExpr += rexpr.reduct.toSexpr() + '\n'
             else:
                 iterExpr += str(rexpr.reduct) + '\n'
-            print iterExpr
             output.write(unicode(iterExpr))
         num -= 1
 
@@ -754,7 +748,6 @@ def containDups(collection):
 #############################################
 
 
-
 # Checks to make sure an input file and output file are given
 if len(sys.argv) < 3:
     sys.exit('Usage: %s input-file output-file' % sys.argv[0])
@@ -779,13 +772,12 @@ yada = yacc.parse(inp)
 signatures = retrieveSignatures(yada.children[0])
 equations = retrieveEquations(yada.children[1]);
 
-for eq in equations:
-    print eq.toString()
+#for eq in equations:
+#    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
 #print reduceExpr(expr2)                
-
 
 for sig in signatures :
     base = findBaseCase(sig)
