@@ -602,18 +602,15 @@ def equalExpr(expr1, expr2):
             return False
                 
 #largely assumes the method with no args and returns the typename is the base
-def findBaseCase(sigStruct):
-    opSpecs = sigStruct.opspecs  
-    for spec in opSpecs:
-        if len(spec.args) == 0 :
-            return Expr(spec.operation)
-    sys.exit('No base case found for ' + sigStruct.typename)
-
-def findBaseCaseOutput(sigStruct):
-    opSpecs = sigStruct.opspecs
-    for spec in opSpecs:
-        if len(spec.args) == 0 :
-            return spec.output
+def findBaseCases(sigs):
+    baseCases = {}
+    for signature in sigs:
+        for spec in signature.opspecs:
+            if len(spec.args) == 0 :
+                baseCases[spec.output] = Expr(spec.operation)
+    
+    return baseCases
+    #sys.exit('No base case found for ' + sigStruct.typename)
 
 def randomTypeGen(type) :
     if type == 'int' :
@@ -627,37 +624,43 @@ def randomTypeGen(type) :
         randomString = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,10)))
         return repr(unicode(randomString, "utf-8" ))
     
-def generateBaseExpressions(sigstruct, base):
+def generateBaseExpressions(sig, baseCases):
     generatedExprs = defaultdict(list)
+    for signature in sig:
     # turn each signature into a Scheme Expression
-    for spec in sigstruct.opspecs:
-        expr = Expr(spec.operation)
-        for arg in spec.args:
-            if (arg == findBaseCaseOutput(sigstruct)) :
-                expr.args.append(dict({'ArgType' : arg, 'Value' : base}))
-            else: 
-                expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
+        for spec in signature.opspecs:
+            expr = Expr(spec.operation)
+            for arg in spec.args:
+                if (arg in baseCases) :
+                    expr.args.append(dict({'ArgType' : arg, 'Value' : baseCases[arg]}))
+                else: 
+                    expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
                 
-        generatedExprs[spec.output].append(expr)
+                generatedExprs[spec.output].append(expr)
         # generate some random bases for primitives
-        if spec.output in ["int","boolean","string","char"] :
-            for n in range(0, 3):
-                generatedExprs[spec.output].append(randomTypeGen(spec.output))
+                if spec.output in ["int","boolean","string","char"] :
+                    for n in range(0, 3):
+                        generatedExprs[spec.output].append(randomTypeGen(spec.output))
     return generatedExprs
     
-def generateNonBaseExpressions(exprs, reducedExprs, sigstruct, base):
-    specs = sigstruct.opspecs
-    for spec in specs:
-        if (spec.operation != base.op) :
-            newExpr = Expr(spec.operation)
-            for arg in spec.args :
-                newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
-
-            reduction = reduceExpr(newExpr)
-            if(reduction):
-                if(isinstance(reduction, str)):
+def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
+    for signature in sigs:
+        for spec in signature.opspecs:
+            if (not spec.output in baseCases or (spec.output in baseCases and spec.operation != baseCases[spec.output].op)) :
+                newExpr = Expr(spec.operation)
+                for arg in spec.args :
+                    newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
+    
+                reduction = reduceExpr(newExpr)
+                if(reduction):
+                    #if(isinstance(reduction, str)):
                     reducedExprs.append(ReducedExpr(newExpr, reduction))
-            exprs[spec.output].append(newExpr)
+                exprs[spec.output].append(newExpr)
+                
+                def exprf(x): return not isinstance(x, str)
+                filterExprs = filter(exprf, exprs[spec.output])
+                if(len(filterExprs) > 3):
+                    exprs[spec.output] = filterExprs
     
 
 def getReduction(expr, lterm, rterm):
@@ -685,14 +688,14 @@ def reduceExpr(expr):
         if(r):
             if(isinstance(r, Expr)):
                 for i in range(len(r.args)):
-                    r.args[i]['Value'] = reduceExpr(r.args[i]['Value'])
+                    r.args[i]['Value'] = reduceExpr(r. args[i]['Value'])
                 return reduceExpr(r)
             else:
                 return r
         else:
-           for i in range(len(expr.args)):
-               expr.args[i]['Value'] = reduceExpr(expr.args[i]['Value'])
-           return expr
+            for i in range(len(expr.args)):
+                expr.args[i]['Value'] = reduceExpr(expr.args[i]['Value'])
+            return expr
     else:
         return expr
 
@@ -704,23 +707,24 @@ def reduceSingleExpr(expr):
         if equalExprToTerm(expr, eq.left):
             r = getReduction(expr, eq.left, eq.right)
             return r
-
-
-def printNumIterExpressions(num, sig, base):
+        
+def printNumIterExpressions(num, sigs):
     reducedExprs = []
-    iter = generateBaseExpressions(sig, base)
+    # find all base exprs for signatures
+    baseCases = findBaseCases(sigs)
+    exprs = generateBaseExpressions(sigs, baseCases)
 
     num -= 1 
     while num > 0 :
-        generateNonBaseExpressions(iter, reducedExprs, sig, base)
-        # ading non base cases to the output file 
+        generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases)
+        # adding non base cases to the output file 
         for rexpr in reducedExprs:
             iterExpr = rexpr.expr.toSexpr() + '\n'
             if(isinstance(rexpr.reduct, Expr)):
                 iterExpr += rexpr.reduct.toSexpr() + '\n'
             else:
                 iterExpr += str(rexpr.reduct) + '\n'
-            output.write(unicode(iterExpr))
+            output.write(unicode(iterExpr+'\n'))
         num -= 1
 
 #############################################
@@ -776,12 +780,12 @@ equations = retrieveEquations(yada.children[1]);
 #    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
-#expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
-#print reduceExpr(expr2)                
+expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+print reduceExpr(expr2)                
 
-for sig in signatures :
-    base = findBaseCase(sig)
-    printNumIterExpressions(20, sig, base)
+#for sig in signatures :
+    #base = findBaseCase(sig)
+printNumIterExpressions(20, signatures)
 
 file.close()
 output.close()
