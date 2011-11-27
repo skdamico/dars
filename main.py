@@ -455,7 +455,14 @@ def retrieveEqNodes(n, equations):
         if (len(n.children) > 1) :
             retrieveEqNodes(n.children[1], equations)
 
-def retrieveTermValues(term, expr):
+def getTypesFromExpr(expr, types):
+    for i in range(len(expr.args)):
+        if (not isinstance(expr.args[i].get('Value'), unicode)):
+            getTypesFromExpr(expr.args[i].get('Value'), types)
+        else:
+            types[expr.args[i]['Value']] = expr.args[i].get('ArgType')
+            
+def retrieveTermValues(term, expr, exprTypes = None):
     if(isinstance(term.type, str) and term.type == 'empty'):
         pass
     elif(term.value is None):
@@ -463,14 +470,18 @@ def retrieveTermValues(term, expr):
             if(term.children[0].type == 'operation'):
                 newarg = createOpArg(term.children[0])
                 expr.args.append(newarg)
-                retrieveTermValues(term.children[1], expr.args[0].get('Value'))
+                retrieveTermValues(term.children[1], expr.args[len(expr.args) - 1].get('Value'), exprTypes)
             elif(term.children[0].type == 'identifier'):
-                argType = findArgType(expr.op, len(expr.args))
-                expr.args.append(dict({'ArgType' : argType, 'Value' : term.children[0].value}))
+                if (exprTypes is None):
+                    argType = findArgType(expr.op, len(expr.args))
+                else : 
+                    argType = exprTypes[term.children[0].value]
+                expr.args.append(dict({'ArgType' : argType, 'Value' : term.children[0].value}))            
         else:
-            retrieveTermValues(term.children[0], expr)
+            retrieveTermValues(term.children[0], expr, exprTypes)
             if(len(term.children) > 1):
                 retrieveTermValues(term.children[1], expr)
+
              
 def createOpArg(expr):
     if(expr.type == 'operation'):
@@ -562,9 +573,9 @@ def retrieveEquations(tree):
         retrieveTermValues(eq.children[1], rightExpr)
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
-        if equa.valid():
+        #if equa.valid():
             # Append the Equation to list, but remove the top level "term" op
-            listOfEquationStructs.append( equa )
+        listOfEquationStructs.append( equa )
 
         leftExpr = Expr("term")
         rightExpr = Expr("term")

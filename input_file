@@ -1,25 +1,29 @@
-Signature: 
+Signature:
 
-ADT: StackInt 
+ADT: List
 
-empty: -> StackInt 
-top: StackInt -> int 
-isEmpty: StackInt -> boolean 
-push: StackInt * int -> StackInt 
-pop: StackInt -> StackInt 
+    emptyList   :              ->  List
+    cons        :  int * List  ->  List
+    isEmpty     :  List        ->  boolean
+    first       :  List        ->  int
+    rest        :  List        ->  List
+    toSet       :  List        ->  Set
 
 ADT: SortedSet
 
-emptySet: ->  Set
-adjoin:  Set * int -> Set
-isEmpty:  Set -> boolean
-choose:  Set -> int
-others:  Set -> Set
-union:  Set * Set ->  Set
-intersection:  Set * Set  ->  Set
-toList:  Set ->  List
+    emptySet     :             ->  Set
+    adjoin       :  Set * int  ->  Set
+    isEmpty      :  Set        ->  boolean
+    choose       :  Set        ->  int
+    others       :  Set        ->  Set
+    union        :  Set * Set  ->  Set
+    intersection :  Set * Set  ->  Set
+    toList       :  Set        ->  List
 
 Equations:
+	(top (push s n))  =  n
+	(pop (push s n))  =  s
+    (union (emptySet) s2) = s2
+    (union (adjoin s1 k) s2) = (union s1 (adjoin s2 k))
 
-(top (push s n))  =  n
-(pop (push s n))  =  s
+    
