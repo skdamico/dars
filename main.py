@@ -90,8 +90,7 @@ def p_typename(p):
 
 
 def p_identifier(p):
-    '''identifier : ID
-                  | BOOLEAN'''
+    '''identifier : ID'''
     p[0] = Node('identifier', [], p[1])
 
 ##Scheme grammmars which were commented out for Assignment 4
@@ -177,6 +176,23 @@ def p_identifier(p):
 #    p[0] = ('hex-scalar-value', p[1])
 #
 #def p_hex_digit_plus(p):
+#                           | UNICODE_PO
+#                           | UNICODE_SC
+#                           | UNICODE_SM
+#                           | UNICODE_SK
+#                           | UNICODE_SO
+#                           | UNICODE_CO'''
+#    p[0] = p[1]
+#
+#def p_inline_hex_escape(p):
+#    'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
+#    if p[2] == 'x' : p[0] = ('inline-hex-escape', (r"\x", p[3], ";"))
+#
+#def p_hex_scalar_value(p):
+#    'hex_scalar_value : hex_digit_plus'
+#    p[0] = ('hex-scalar-value', p[1])
+#
+#def p_hex_digit_plus(p):
 #    '''hex_digit_plus : hex_digit hex_digit_plus2'''
 #    p[0] = ('hex-digit-plus', (p[1], p[2]))
 #
@@ -189,7 +205,6 @@ def p_identifier(p):
 #    '''hex_digit : DIGIT
 #                 | LETTER'''
 #    p[0] = ('hex-digit', p[1])
-#
 
 def p_equations(p): 
     '''equations : equation equations 
