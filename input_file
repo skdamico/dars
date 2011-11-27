@@ -23,5 +23,3 @@ Equations:
 
 (top (push s n))  =  n
 (pop (push s n))  =  s
-
-

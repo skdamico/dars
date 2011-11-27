@@ -600,7 +600,7 @@ def equalExpr(expr1, expr2):
                     return (expr1.args[i].get('Value') == expr2.args[i].get('Value'))
         else:
             return False
-                
+               
 #largely assumes the method with no args and returns the typename is the base
 def findBaseCases(sigs):
     baseCases = {}
@@ -651,7 +651,7 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
                 for arg in spec.args :
                     newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
     
-                reduction = reduceExpr(newExpr)
+                reduction = rewriteExpr(newExpr)
                 if(reduction):
                     #if(isinstance(reduction, str)):
                     reducedExprs.append(ReducedExpr(newExpr, reduction))
@@ -663,51 +663,66 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
                     exprs[spec.output] = filterExprs
     
 
-def getReduction(expr, lterm, rterm):
-    if (isinstance(lterm, Expr) and isinstance(rterm, Expr)):
-        if(equalExpr(lterm,rterm)):
-            return expr
-        else:
-            for i in range(len(expr.args)):
-                r = getReduction(expr.args[i].get('Value'), lterm.args[i].get('Value'), rterm)
-                if(r):
-                    return r
-    elif (isinstance(lterm, unicode) and isinstance(rterm, unicode)):
-        if(lterm == rterm):
-            return expr
-    else:
-        if(isinstance(expr, Expr)):
-            for i in range(len(expr.args)):
-                r = getReduction(expr.args[i].get('Value'), lterm.args[i].get('Value'), rterm)
-                if(r):
-                    return r
 
-def reduceExpr(expr):
+
+def getVariableMapping(expr, term, vmap):
+    if(isinstance(term, unicode)):
+        vmap[term] = expr
+    elif(isinstance(expr, Expr) and isinstance(term, Expr)):
+        for i in range(len(expr.args)):
+            getVariableMapping(expr.args[i].get('Value'), term.args[i].get('Value'), vmap)
+
+
+def getSubstitutedRewrite(term, vmap):
+    if(isinstance(term, unicode)):
+        if(term in vmap):
+            return vmap[term]
+        else:
+            return term
+    elif(isinstance(term, Expr)):
+        newargs = []
+        for arg in term.args:
+            newargs.append(dict({'ArgType' : arg.get('ArgType'), 'Value' : getSubstitutedRewrite(arg.get('Value'), vmap)}))
+        return Expr(term.op, newargs)
+
+def getRewrite(expr, lterm, rterm):
+    # get mapping of variables in rewrite rule to actual values
+    vmap = {}
+    getVariableMapping(expr, lterm, vmap)
+
+    # parse through right term replacing vars with actual value
+    return getSubstitutedRewrite(rterm, vmap)
+
+# Try to rewrite given expr and all args that are exprs 
+def rewriteExpr(expr):
     if(isinstance(expr, Expr)):
-        r = reduceSingleExpr(expr)
+        r = rewriteSingleExpr(expr)
         if(r):
             if(isinstance(r, Expr)):
                 for i in range(len(r.args)):
-                    r.args[i]['Value'] = reduceExpr(r. args[i]['Value'])
-                return reduceExpr(r)
+                    r.args[i]['Value'] = rewriteExpr(r. args[i]['Value'])
+                return rewriteExpr(r)
             else:
                 return r
         else:
             for i in range(len(expr.args)):
-                expr.args[i]['Value'] = reduceExpr(expr.args[i]['Value'])
+                expr.args[i]['Value'] = rewriteExpr(expr.args[i]['Value'])
             return expr
     else:
         return expr
 
-def reduceSingleExpr(expr):
+# if expr looks like a rewrite rule, get the rewritten expr
+def rewriteSingleExpr(expr):
     global equations
     
     for eq in equations:
         # check equality to term
         if equalExprToTerm(expr, eq.left):
-            r = getReduction(expr, eq.left, eq.right)
+            r = getRewrite(expr, eq.left, eq.right)
             return r
-        
+
+
+
 def printNumIterExpressions(num, sigs):
     reducedExprs = []
     # find all base exprs for signatures
@@ -733,8 +748,6 @@ def printNumIterExpressions(num, sigs):
 #############################################
 #############################################
 
-
-
 def containDups(collection):
     seen = set()
 
@@ -743,6 +756,7 @@ def containDups(collection):
             return True
     
     return False
+
 
 
 #############################################
@@ -780,8 +794,9 @@ equations = retrieveEquations(yada.children[1]);
 #    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
-expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'StackInt', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
-print reduceExpr(expr2)                
+expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+#expr3 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("pop", [dict({'ArgType' : 'StackInt', 'Value', Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : 2})]})]})]}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+print rewriteExpr(expr2)
 
 #for sig in signatures :
     #base = findBaseCase(sig)
