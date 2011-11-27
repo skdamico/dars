@@ -26,6 +26,9 @@ tokens = (
     "ADT",
     "SIGNATURE",
     "EQUATIONS",
+    "NOT",
+    "SPECIAL_PRIMITIVE",
+    "ELLIPSIS",
     "UNICODE_PC",
     "UNICODE_ME",
     "UNICODE_CO",
@@ -49,11 +52,11 @@ tokens = (
 
 #Actually define the tokens specified for the lexer
 def t_SIGNATURE(t):
-    ur'Signature'
+    ur'Signature:'
     return t
 
 def t_EQUATIONS(t):
-    ur'Equations'
+    ur'Equations:'
     return t
 
 def t_CHARACTER_NAME(t):
@@ -61,7 +64,7 @@ def t_CHARACTER_NAME(t):
     return t
 
 def t_ADT(t):
-    ur'ADT'
+    ur'ADT:'
     return t
 
 def t_TYPENAME(t):
@@ -120,12 +123,14 @@ def t_ESCAPE(t):
     ur'\\'
     return t
 
+# NOTE: UPPER CASE BOOLEAN REMOVED
+# Just testing
 def t_BOOLEAN(t):
-    ur'\#t|\#T|\#f|\#F'
+    ur'\#t|\#f'
     return t
 
 def t_SPECIAL_INITIAL(t):
-    ur'[!$%&/<=?>^_~]'
+    ur'[!$%&/?^_~]'
     return t
 
 def t_ID(t):
@@ -139,6 +144,15 @@ def t_LETTER(t):
 def t_DIGIT(t):
     ur'[0-9]'
     return t
+
+def t_NOT(t):
+    ur'not'
+    return t
+
+def t_SPECIAL_PRIMITIVE(t):
+    ur'[=<>]'
+    return t
+
 
 # Unicode tokens by class
 # Lu, Ll, Lt, Lm, Lo, Mn, Nl, No, Pd, Pc, Po, Sc, Sm, Sk, So, Co

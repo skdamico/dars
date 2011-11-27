@@ -23,8 +23,8 @@ equations = []
 
 #Define grammar rules for the parser
 def p_input(p):
-    'input : SIGNATURE COLON signatures EQUATIONS COLON equations'
-    p[0] = Node('input', [p[3], p[6]])
+    'input : SIGNATURE signatures EQUATIONS equations'
+    p[0] = Node('input', [p[2], p[4]])
 
 def p_signatures(p): 
     '''signatures : signature signatures2'''
@@ -36,8 +36,8 @@ def p_signatures2(p):
     p[0] = p[1]
 
 def p_signature(p): 
-    'signature : ADT COLON typename operation_specs'
-    p[0] = Node('signature', [p[3], p[4]])
+    'signature : ADT typename operation_specs'
+    p[0] = Node('signature', [p[2], p[3]])
 
 def p_operation_specs(p):
     '''operation_specs : operation_spec operation_specs2'''
@@ -200,7 +200,7 @@ def p_equations(p):
         p[0] = Node('equations', [p[1], p[2]])
 
 def p_equation(p):
-    '''equation : term EQUAL term'''
+    '''equation : term EQUAL rhs'''
     p[0] = Node('equation', [p[1], p[3]])
     
 def p_term(p):
@@ -216,8 +216,45 @@ def p_args(p):
             | empty'''
     if (len(p) == 2) :
         p[0] = p[1]
-    else:
+    else :
         p[0] = Node('args', [p[1], p[2]])
+
+def p_rhs(p): 
+    '''rhs : term
+           | BOOLEAN
+           | uinteger_10
+           | LEFT_PARENS primitive args RIGHT_PARENS'''
+    if len(p) == 2: 
+        p[0] = Node('rhs', [p[1]])
+    else :
+        p[0] = Node('rhs', [p[2], p[3]])
+
+## rhs_args is same exact thing as args... should just reuse?
+def p_rhs_args(p): 
+    '''rhs_args : rhs rhs_args 
+                | empty'''
+    if (len(p) == 2) :
+        p[0] = p[1]
+    else :
+        p[0] = Node('rhs_args', [p[1], p[2]])
+
+def p_primitive(p):
+    '''primitive : NOT 
+                 | SPECIAL_PRIMITIVE
+                 | STAR
+                 | PLUS
+                 | MINUS'''
+    p[0] = Node('primitive', [], p[1])
+
+def p_uinteger_10(p):
+    '''uinteger_10 : DIGIT digit_plus '''
+    p[0] = Node('uinteger_10', [p[2]])
+
+def p_digit_plus(p):
+    '''digit_plus : DIGIT
+                  | empty'''
+    p[0] = p[1]
+
 
 def p_empty(p):
     'empty :'
