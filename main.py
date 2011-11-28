@@ -235,7 +235,8 @@ def p_rhs(p):
     '''rhs : term
            | BOOLEAN
            | uinteger_10
-           | LEFT_PARENS primitive args RIGHT_PARENS'''
+           | LEFT_PARENS primitive rhs_args RIGHT_PARENS
+           | LEFT_PARENS operation rhs_args RIGHT_PARENS'''
     if len(p) == 2: 
         p[0] = Node('rhs', [p[1]])
     else :
