@@ -93,44 +93,40 @@ def p_identifier(p):
     '''identifier : ID'''
     p[0] = Node('identifier', [], p[1])
 
+## 
+#def p_identifier(p):
+#    '''identifier : initial subsequent_star
+#                  | peculiar_identifier'''
+#   if len(p) == 2:         
+#       p[0] = Node('identifier', [p[1]])
+#   else
+#       p[0] = Node('identifier, [p[1], p[2]])
+
 ##Scheme grammmars which were commented out for Assignment 4
 #def p_peculiar_identifier(p):
-#    '''peculiar_identifier : subsequent_star 
-#                           | ellipsis'''
-#    p[0] = ('peculiar-identifier', p[1])
+#    '''peculiar_identifier : ARROW subsequent_star 
+#                           | ELLIPSIS
+#                           | PLUS
+#                           | MINUS'''
+#   if len(p) == 2: 
+#       p[0] = Node('peculiar-identifier', [], p[1])
+#   else:
+#       p[0] = Node('peculiar-identifier', [p[2]])
 #
 #def p_subsequent_star(p):
 #    '''subsequent_star : subsequent subsequent_star2'''
-#    p[0] = ('subsequent-star', (p[1], p[2]))
+#    p[0] = Node('subsequent-star', [p[1], p[2]])
 #
 #def p_subsequent_star2(p):
 #    '''subsequent_star2 : subsequent_star
 #                        | empty'''
-#    p[0] = ('subsequent-star2', p[1])
+#    p[0] = p[1] 
 #
 #def p_subsequent(p):
 #    '''subsequent : initial
 #                  | special_subsequent
 #                  | unicode_subsequent
 #                  | DIGIT'''
-#    p[0] = ('subsequent', p[1])
-#
-#def p_unicode_subsequent(p):
-#    '''unicode_subsequent : UNICODE_ND
-#                          | UNICODE_MC
-#                          | UNICODE_ME'''
-#    p[0] = p[1]
-#
-#def p_initial(p):
-#    '''initial : constituent 
-#               | special_initial 
-#               | inline_hex_escape'''
-#    p[0] = ('initial', p[1])
-#
-#def p_ellipsis(p):
-#    'ellipsis : PERIOD PERIOD PERIOD'
-#    p[0] = ('ellipsis', '...')
-#
 #
 #def p_special_subsequent(p):
 #    '''special_subsequent : PLUS 
@@ -169,7 +165,8 @@ def p_identifier(p):
 #
 #def p_inline_hex_escape(p):
 #    'inline_hex_escape : ESCAPE LETTER hex_scalar_value SEMICOLON'
-#    if p[2] == 'x' : p[0] = ('inline-hex-escape', (r"\x", p[3], ";"))
+#    if p[2] == 'x' : 
+#       p[0] = Node('inline-hex-escape', [r"\x", p[3], ";"])
 #
 #def p_hex_scalar_value(p):
 #    'hex_scalar_value : hex_digit_plus'
