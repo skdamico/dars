@@ -21,6 +21,10 @@ equations = []
 #############################################
 #############################################
 
+precedence = (
+    ('left', 'DIGIT'),
+)
+
 #Define grammar rules for the parser
 def p_input(p):
     'input : SIGNATURE signatures EQUATIONS equations'
@@ -233,7 +237,7 @@ def p_args(p):
 
 def p_rhs(p): 
     '''rhs : BOOLEAN
-           | digit_plus
+           | uinteger_10
            | identifier 
            | LEFT_PARENS primitive rhs_args RIGHT_PARENS
            | LEFT_PARENS operation rhs_args RIGHT_PARENS'''
@@ -259,22 +263,18 @@ def p_primitive(p):
                  | MINUS'''
     p[0] = Node('primitive', [], p[1])
 
-#def p_uinteger_10(p): 
-#    '''uinteger_10 : DIGIT digit_plus'''
-#    p[0] = Node('uinteger_10', [p[1], p[2]])
+def p_uinteger_10(p): 
+    '''uinteger_10 : digit_plus'''
+    p[0] = Node('uinteger_10', [p[1]])
 
 def p_digit_plus(p):
-    '''digit_plus : digit digit_plus2'''
+    '''digit_plus : DIGIT digit_plus2'''
     p[0] = p[2]
 
 def p_digit_plus2(p):
     '''digit_plus2 : digit_plus
                    | empty'''
     p[0] = p[1]   
-
-def p_digit(p): 
-    'digit : DIGIT'
-    p[0] = p[1]
 
 def p_empty(p):
     'empty :'
