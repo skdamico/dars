@@ -620,7 +620,9 @@ def retrieveEquations(tree):
     listOfEquationStructs = []
     for eq in equations:
         retrieveTermValues(eq.children[0], leftExpr)
-        retrieveTermValues(eq.children[1], rightExpr)
+        leftExprTypes = {}
+        getTypesFromExpr(leftExpr, leftExprTypes)
+        retrieveTermValues(eq.children[1], rightExpr, leftExprTypes)
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
         #if equa.valid():
