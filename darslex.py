@@ -60,7 +60,7 @@ def t_EQUATIONS(t):
     return t
 
 def t_CHARACTER_NAME(t):
-    ur'nul | alarm | backspace | tab | linefeed | newline | vtab | page | return | esc | space | delete'
+    ur'^[nul | alarm | backspace | tab | linefeed | newline | vtab | page | return | esc | space | delete]$'
     return t
 
 def t_ADT(t):
