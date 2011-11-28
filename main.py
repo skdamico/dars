@@ -523,7 +523,7 @@ def retrieveTermValues(term, expr, exprTypes = None):
     if(isinstance(term.type, str) and term.type == 'empty'):
         pass
     elif(term.value is None):
-        if(term.type == 'term'):
+        if(term.type == 'term' or term.type == 'rhs'):
             if(term.children[0].type == 'operation'):
                 newarg = createOpArg(term.children[0])
                 expr.args.append(newarg)
