@@ -518,22 +518,42 @@ def getTypesFromExpr(expr, types):
             getTypesFromExpr(expr.args[i].get('Value'), types)
         else:
             types[expr.args[i]['Value']] = expr.args[i].get('ArgType')
+
+def findPrimitiveType(s):
+    bool = ['#t', '#T', '#f', '#F']
+    if (str(s) in bool) :
+        return 'boolean'
+    elif(s.isnumeric()) :
+        return 'int'
+    elif(s.isalpha() or str(s).isalnum()) :
+        return 'string'
+    else :
+        return 'char'
             
 def retrieveTermValues(term, expr, exprTypes = None):
     if(isinstance(term.type, str) and term.type == 'empty'):
         pass
     elif(term.value is None):
         if(term.type == 'term' or term.type == 'rhs'):
-            if(term.children[0].type == 'operation'):
+            if(isinstance(term.children[0], unicode)):
+                expr.args.append(dict({'ArgType' : findPrimitiveType(term.children[0]), 'Value' : term.children[0]}))            
+            elif (term.children[0].type == 'operation'):
                 newarg = createOpArg(term.children[0])
                 expr.args.append(newarg)
                 retrieveTermValues(term.children[1], expr.args[len(expr.args) - 1].get('Value'), exprTypes)
             elif(term.children[0].type == 'identifier'):
                 if (exprTypes is None):
                     argType = findArgType(expr.op, len(expr.args))
-                else : 
-                    argType = exprTypes[term.children[0].value]
-                expr.args.append(dict({'ArgType' : argType, 'Value' : term.children[0].value}))            
+                else :
+                    if (term.children[0].value in exprTypes):
+                        argType = exprTypes[term.children[0].value]
+                    else :
+                        argType = findPrimitiveType(term.children[0].value)
+                expr.args.append(dict({'ArgType' : argType, 'Value' : term.children[0].value}))
+            elif(term.children[0].type == 'primitive'):
+                newarg = createOpArg(term.children[0])
+                expr.args.append(newarg)
+                retrieveTermValues(term.children[1], expr.args[len(expr.args) - 1].get('Value'), exprTypes)            
         else:
             retrieveTermValues(term.children[0], expr, exprTypes)
             if(len(term.children) > 1):
@@ -545,6 +565,14 @@ def createOpArg(expr):
         return createOpArg(expr.children[0])
     elif(expr.type == 'identifier'):
         return dict({'ArgType' : findOutputType(expr.value), 'Value' : Expr(expr.value)})
+    elif(expr.type == 'primitive'):
+        return dict({'ArgType' : findPrimOutputType(expr.value), 'Value' : Expr(expr.value)})
+
+def findPrimOutputType(op):
+    intTypes = ['+', '-', '*']
+    if (op in intTypes):
+        return 'int'
+    else: return 'boolean'
 
 def findOutputType(op):
     global signatures
