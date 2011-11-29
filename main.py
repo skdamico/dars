@@ -4,6 +4,7 @@ import Queue
 import codecs, sys
 import random
 import string
+import re
 from collections import defaultdict
 
 tokens = darslex.tokens
@@ -375,10 +376,14 @@ class EquationStruct:
 
         return text
 
-    def validIds(self):
+    def validRhs(self):
+        valid = True
         leftIds     = []
-        rightIds    = []
+        rightVals    = []
 
+        # locates all identifiers on the left side of an equation and adds 
+        # them to an array. If an identifier appears more than once 
+        # immediately returns and states the equation is invalid
         if isinstance( self.left, Expr ):
             if containDups( self.left.findAllValues() ):
                 return False
@@ -387,16 +392,19 @@ class EquationStruct:
         else:
             leftIds.append( self.left )
 
+        # finds all the identifiers and all the allowed values for the 
+        # right hand side of an equation
         if isinstance( self.right, Expr ):
-            rightIds += self.right.findAllValues()
+            rightVals += self.right.findAllValues()
         else:
-            rightIds.append( self.right )
+            rightVals.append( self.right )
 
-        for iden in rightIds:
-            if not( iden in leftIds ):
-                return False
+        for val in rightVals:
+            if ( not( val.isdecimal()) ) and not( isBool(val) ):
+                if not( val in leftIds ) :
+                    return False
 
-        return True
+        return valid 
 
     def validOps(self):
         results = []
@@ -404,18 +412,22 @@ class EquationStruct:
         for opList in self.getOpList():
             for op in opList:
                 sub_result = []
+                
+                if not( isPrimitive( op ) ):
 
-                for sig in signatures:
-                    sub_result.append( sig.containsOperation(op) )
+                    for sig in signatures:
+                        sub_result.append( sig.containsOperation(op))
 
-                if not(True in sub_result):
-                    result.append( False )
+                    if not(True in sub_result):
+                        results.append( False )
+                
 
         return not( False in results )
 
 
+
     def valid(self):
-        return self.validIds() and self.validOps()
+        return self.validOps() and self.validRhs()
 
 
 class Expr:
@@ -458,7 +470,7 @@ class Expr:
             if( isinstance( arg['Value'], Expr ) ):
                 vals += arg['Value'].findAllValues()
             else:
-                vals += arg['Value']
+                vals.append( arg['Value'] )
 
         return vals
 
@@ -660,9 +672,9 @@ def retrieveEquations(tree):
         retrieveTermValues(eq.children[1], rightExpr, leftExprTypes)
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
-        #if equa.valid():
+        if equa.valid():
             # Append the Equation to list, but remove the top level "term" op
-        listOfEquationStructs.append( equa )
+            listOfEquationStructs.append( equa )
 
         leftExpr = Expr("term")
         rightExpr = Expr("term")
@@ -735,8 +747,7 @@ def generateBaseExpressions(sig, baseCases):
                     expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
                 
                 generatedExprs[spec.output].append(expr)
-
-                # generate some random bases for primitives
+        # generate some random bases for primitives
                 if spec.output in ["int","boolean","string","char"] :
                     for n in range(0, 3):
                         generatedExprs[spec.output].append(randomTypeGen(spec.output))
@@ -792,12 +803,6 @@ def getRewrite(expr, lterm, rterm):
     # parse through right term replacing vars with actual value
     return getSubstitutedRewrite(rterm, vmap)
 
-def getType(e):
-    if(isinstance(e, unicode)):
-        return findPrimitiveType(e);
-    elif(isinstance(e, Expr)):
-        return findOutputType(e.op)
-
 # Try to rewrite given expr and all args that are exprs 
 def rewriteExpr(expr):
     if(isinstance(expr, Expr)):
@@ -805,15 +810,13 @@ def rewriteExpr(expr):
         if(r):
             if(isinstance(r, Expr)):
                 for i in range(len(r.args)):
-                    r.args[i]['Value'] = rewriteExpr(r.args[i]['Value'])
-                    r.args[i]['ArgType'] = getType(r.args[i]['Value'])
+                    r.args[i]['Value'] = rewriteExpr(r. args[i]['Value'])
                 return rewriteExpr(r)
             else:
                 return r
         else:
             for i in range(len(expr.args)):
                 expr.args[i]['Value'] = rewriteExpr(expr.args[i]['Value'])
-                expr.args[i]['ArgType'] = getType(expr.args[i]['Value'])
             return expr
     else:
         return expr
@@ -861,9 +864,15 @@ def containDups(collection):
     for item in collection:
         if item in seen:
             return True
-    
+        seen.add(item)
+
     return False
 
+def isPrimitive(string):
+    return re.match( r'[not|\+|-|\*|=|<|>]', string, re.U )
+
+def isBool(string):
+    return re.match( r'[#t|#f]', string, re.U )
 
 
 #############################################
@@ -897,16 +906,17 @@ yada = yacc.parse(inp)
 signatures = retrieveSignatures(yada.children[0])
 equations = retrieveEquations(yada.children[1]);
 
-#for eq in equations:
-#    print eq.toString()
+for eq in equations:
+    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
 #expr3 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("pop", [dict({'ArgType' : 'StackInt', 'Value', Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : 2})]})]})]}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+#print rewriteExpr(expr2)
 
 #for sig in signatures :
     #base = findBaseCase(sig)
-printNumIterExpressions(20, signatures)
+#printNumIterExpressions(20, signatures)
 
 file.close()
 output.close()
