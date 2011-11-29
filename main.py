@@ -21,6 +21,10 @@ equations = []
 #############################################
 #############################################
 
+precedence = (
+    ('left', 'DIGIT'),
+)
+
 #Define grammar rules for the parser
 def p_input(p):
     'input : SIGNATURE signatures EQUATIONS equations'
@@ -232,9 +236,9 @@ def p_args(p):
         p[0] = Node('args', [p[1], p[2]])
 
 def p_rhs(p): 
-    '''rhs : term
-           | BOOLEAN
+    '''rhs : BOOLEAN
            | uinteger_10
+           | identifier 
            | LEFT_PARENS primitive rhs_args RIGHT_PARENS
            | LEFT_PARENS operation rhs_args RIGHT_PARENS'''
     if len(p) == 2: 
@@ -259,15 +263,18 @@ def p_primitive(p):
                  | MINUS'''
     p[0] = Node('primitive', [], p[1])
 
-def p_uinteger_10(p):
-    '''uinteger_10 : DIGIT digit_plus '''
-    p[0] = Node('uinteger_10', [p[2]])
+def p_uinteger_10(p): 
+    '''uinteger_10 : digit_plus'''
+    p[0] = Node('uinteger_10', [p[1]])
 
 def p_digit_plus(p):
-    '''digit_plus : DIGIT
-                  | empty'''
-    p[0] = p[1]
+    '''digit_plus : DIGIT digit_plus2'''
+    p[0] = p[2]
 
+def p_digit_plus2(p):
+    '''digit_plus2 : digit_plus
+                   | empty'''
+    p[0] = p[1]   
 
 def p_empty(p):
     'empty :'
@@ -516,7 +523,7 @@ def retrieveTermValues(term, expr, exprTypes = None):
     if(isinstance(term.type, str) and term.type == 'empty'):
         pass
     elif(term.value is None):
-        if(term.type == 'term'):
+        if(term.type == 'term' or term.type == 'rhs'):
             if(term.children[0].type == 'operation'):
                 newarg = createOpArg(term.children[0])
                 expr.args.append(newarg)
@@ -620,7 +627,9 @@ def retrieveEquations(tree):
     listOfEquationStructs = []
     for eq in equations:
         retrieveTermValues(eq.children[0], leftExpr)
-        retrieveTermValues(eq.children[1], rightExpr)
+        leftExprTypes = {}
+        getTypesFromExpr(leftExpr, leftExprTypes)
+        retrieveTermValues(eq.children[1], rightExpr, leftExprTypes)
         
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
         #if equa.valid():
