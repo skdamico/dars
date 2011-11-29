@@ -52,7 +52,7 @@ tokens = (
 
 #Actually define the tokens specified for the lexer
 def t_SIGNATURE(t):
-    ur'Signature:'
+    ur'Signatures:'
     return t
 
 def t_EQUATIONS(t):

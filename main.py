@@ -707,7 +707,8 @@ def generateBaseExpressions(sig, baseCases):
                     expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
                 
                 generatedExprs[spec.output].append(expr)
-        # generate some random bases for primitives
+
+                # generate some random bases for primitives
                 if spec.output in ["int","boolean","string","char"] :
                     for n in range(0, 3):
                         generatedExprs[spec.output].append(randomTypeGen(spec.output))
@@ -763,6 +764,12 @@ def getRewrite(expr, lterm, rterm):
     # parse through right term replacing vars with actual value
     return getSubstitutedRewrite(rterm, vmap)
 
+def getType(e):
+    if(isinstance(e, unicode)):
+        return findPrimitiveType(e);
+    elif(isinstance(e, Expr)):
+        return findOutputType(e.op)
+
 # Try to rewrite given expr and all args that are exprs 
 def rewriteExpr(expr):
     if(isinstance(expr, Expr)):
@@ -770,13 +777,15 @@ def rewriteExpr(expr):
         if(r):
             if(isinstance(r, Expr)):
                 for i in range(len(r.args)):
-                    r.args[i]['Value'] = rewriteExpr(r. args[i]['Value'])
+                    r.args[i]['Value'] = rewriteExpr(r.args[i]['Value'])
+                    r.args[i]['ArgType'] = getType(r.args[i]['Value'])
                 return rewriteExpr(r)
             else:
                 return r
         else:
             for i in range(len(expr.args)):
                 expr.args[i]['Value'] = rewriteExpr(expr.args[i]['Value'])
+                expr.args[i]['ArgType'] = getType(expr.args[i]['Value'])
             return expr
     else:
         return expr
@@ -866,7 +875,6 @@ equations = retrieveEquations(yada.children[1]);
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
 #expr3 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("pop", [dict({'ArgType' : 'StackInt', 'Value', Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : 2})]})]})]}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
-print rewriteExpr(expr2)
 
 #for sig in signatures :
     #base = findBaseCase(sig)
