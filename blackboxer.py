@@ -11,8 +11,8 @@ def writeBlackBoxer(signatures, output, fileName):
     output.write(' ADTS\n')
     output.write(';;; specified by ' + fileName + '.\n\n')
     output.write('''(import (rnrs base)
-            (rnrs exceptions)        ; for the guard syntax
-            (rnrs io simple)         ; for display etc\n''')
+    \t(rnrs exceptions)        ; for the guard syntax
+    \t(rnrs io simple)         ; for display etc\n''')
     if len(signatures) == 1:
         output.write('\t(testing ' + signatures[0].typename + ' ))\n')
     else:
