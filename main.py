@@ -1,5 +1,6 @@
 import darslex
 import yacc
+import blackboxer
 import Queue
 import codecs, sys
 import random
@@ -906,17 +907,18 @@ yada = yacc.parse(inp)
 signatures = retrieveSignatures(yada.children[0])
 equations = retrieveEquations(yada.children[1]);
 
-for eq in equations:
-    print eq.toString()
+#for eq in equations:
+#    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
-expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+#expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
 #expr3 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("pop", [dict({'ArgType' : 'StackInt', 'Value', Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : 2})]})]})]}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
 #print rewriteExpr(expr2)
 
 #for sig in signatures :
     #base = findBaseCase(sig)
 #printNumIterExpressions(20, signatures)
+blackboxer.writeBlackBoxer(signatures, output, fileName)
 
 file.close()
 output.close()
