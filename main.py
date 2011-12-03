@@ -476,9 +476,10 @@ class Expr:
         return vals
 
 class ReducedExpr:
-    def __init__(self, expr, reduct):
+    def __init__(self, expr, reduct, adtName):
         self.expr = expr
         self.reduct = reduct
+        self.adtName = adtName
         
 
 #############################################
@@ -672,10 +673,11 @@ def retrieveEquations(tree):
         getTypesFromExpr(leftExpr, leftExprTypes)
         retrieveTermValues(eq.children[1], rightExpr, leftExprTypes)
         
+        # Append the Equation to list, but remove the top level "term" op
         equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
-        if equa.valid():
-            # Append the Equation to list, but remove the top level "term" op
-            listOfEquationStructs.append( equa )
+
+        ##if equa.valid():
+        listOfEquationStructs.append( equa )
 
         leftExpr = Expr("term")
         rightExpr = Expr("term")
@@ -762,10 +764,10 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
                 for arg in spec.args :
                     newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
     
-                reduction = rewriteExpr(newExpr)
+                reduction = rewriteExpr(newExpr, 0)
                 if(reduction):
                     #if(isinstance(reduction, str)):
-                    reducedExprs.append(ReducedExpr(newExpr, reduction))
+                    reducedExprs.append(ReducedExpr(newExpr, reduction, signature.typename))
                 exprs[spec.output].append(newExpr)
                 
                 def exprf(x): return not isinstance(x, str)
@@ -805,19 +807,20 @@ def getRewrite(expr, lterm, rterm):
     return getSubstitutedRewrite(rterm, vmap)
 
 # Try to rewrite given expr and all args that are exprs 
-def rewriteExpr(expr):
+def rewriteExpr(expr, count):
+    if(count > 100):
+        return expr
     if(isinstance(expr, Expr)):
+        for i in range(len(expr.args)):
+            expr.args[i]['Value'] = rewriteExpr(expr.args[i]['Value'], count)
         r = rewriteSingleExpr(expr)
         if(r):
             if(isinstance(r, Expr)):
-                for i in range(len(r.args)):
-                    r.args[i]['Value'] = rewriteExpr(r. args[i]['Value'])
-                return rewriteExpr(r)
+                count += 1
+                return rewriteExpr(r, count)
             else:
                 return r
         else:
-            for i in range(len(expr.args)):
-                expr.args[i]['Value'] = rewriteExpr(expr.args[i]['Value'])
             return expr
     else:
         return expr
@@ -907,19 +910,25 @@ yada = yacc.parse(inp)
 signatures = retrieveSignatures(yada.children[0])
 equations = retrieveEquations(yada.children[1]);
 
+##### Tests #####
+
 #for eq in equations:
 #    print eq.toString()
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
 #expr3 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("pop", [dict({'ArgType' : 'StackInt', 'Value', Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : 2})]})]})]}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
-#print rewriteExpr(expr2)
+#print rewriteExpr(expr2, 0)
+#print rewriteExpr(expr3)
 
 #for sig in signatures :
     #base = findBaseCase(sig)
 #printNumIterExpressions(20, signatures)
+
 blackboxer.writeBlackBoxer(signatures, output, fileName)
 
 file.close()
 output.close()
+
+
 

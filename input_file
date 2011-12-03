@@ -1,5 +1,13 @@
 Signatures:
 
+ADT: StackInt
+
+    empty       :              -> StackInt
+    push : StackInt * int -> StackInt
+    isEmpty : StackInt -> boolean
+    top : StackInt -> int
+    pop : StackInt -> StackInt
+
 ADT: List
 
     emptyList   :              ->  List
