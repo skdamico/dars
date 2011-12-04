@@ -350,10 +350,6 @@ class OperationSpecStruct:
         self.args = args
         self.output = output 
 
-    def getAllTypes(self):
-        print self.operation
-        print self.args
-
     # checks to see if all the types contained within
     def isValid(self, adts):
         valid = True
