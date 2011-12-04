@@ -763,17 +763,11 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
                 newExpr = Expr(spec.operation)
                 for arg in spec.args :
                     newExpr.args.append(dict({'ArgType' : arg, 'Value' : random.choice(exprs[arg])}))
-    
                 reduction = rewriteExpr(newExpr, 0)
                 if(reduction):
-                    #if(isinstance(reduction, str)):
-                    reducedExprs.append(ReducedExpr(newExpr, reduction, signature.typename))
+                    if(isinstance(reduction, str)):
+                        reducedExprs.append(ReducedExpr(newExpr, reduction, signature.typename))
                 exprs[spec.output].append(newExpr)
-                
-                def exprf(x): return not isinstance(x, str)
-                filterExprs = filter(exprf, exprs[spec.output])
-                if(len(filterExprs) > 3):
-                    exprs[spec.output] = filterExprs
     
 
 
@@ -837,7 +831,7 @@ def rewriteSingleExpr(expr):
 
 
 
-def printNumIterExpressions(num, sigs):
+def genNumIterExpressions(num, sigs):
     reducedExprs = []
     # find all base exprs for signatures
     baseCases = findBaseCases(sigs)
@@ -846,15 +840,9 @@ def printNumIterExpressions(num, sigs):
     num -= 1 
     while num > 0 :
         generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases)
-        # adding non base cases to the output file 
-        for rexpr in reducedExprs:
-            iterExpr = rexpr.expr.toSexpr() + '\n'
-            if(isinstance(rexpr.reduct, Expr)):
-                iterExpr += rexpr.reduct.toSexpr() + '\n'
-            else:
-                iterExpr += str(rexpr.reduct) + '\n'
-            output.write(unicode(iterExpr+'\n'))
         num -= 1
+    return reducedExprs
+    
 
 #############################################
 #############################################
@@ -923,9 +911,9 @@ equations = retrieveEquations(yada.children[1]);
 
 #for sig in signatures :
     #base = findBaseCase(sig)
-#printNumIterExpressions(20, signatures)
+rExprs = genNumIterExpressions(900, signatures)
 
-blackboxer.writeBlackBoxer(signatures, output, fileName)
+blackboxer.writeBlackBoxer(signatures, output, fileName, rExprs)
 
 file.close()
 output.close()

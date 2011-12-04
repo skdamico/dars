@@ -1,13 +1,5 @@
 Signatures:
 
-ADT: StackInt
-
-    empty       :              -> StackInt
-    push : StackInt * int -> StackInt
-    isEmpty : StackInt -> boolean
-    top : StackInt -> int
-    pop : StackInt -> StackInt
-
 ADT: List
 
     emptyList   :              ->  List
@@ -27,11 +19,21 @@ ADT: SortedSet
     union        :  Set * Set  ->  Set
     intersection :  Set * Set  ->  Set
     toList       :  Set        ->  List
+    
+ADT: StackInt
+
+    empty   :                  ->  StackInt
+    push    :  StackInt * int  ->  StackInt
+    isEmpty :  StackInt        ->  boolean
+    top     :  StackInt        ->  int
+    pop     :  StackInt        ->  StackInt
+
 
 Equations:
-	(top (push s n))  =  n
-	(pop (push s n))  =  s
     (union (emptySet) s2) = s2
     (union (adjoin s1 k) s2) = (union s1 (adjoin s2 k))
+    (top (push s k)) = k
+    (pop (push s k)) = s
+    
 
     
