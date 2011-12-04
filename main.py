@@ -16,7 +16,8 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 #globals
 signatures = []
 equations = []
-
+baseTypes = ["int", "boolean", "character", "string"]
+primitiveOps = [ "not", "+", "-", "*", "=", "<", ">" ]
 #############################################
 #############################################
 ####  Defining Grammar                  #####
@@ -306,7 +307,20 @@ class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
         self.opspecs = opspecs
+ 
+    # checks to see if all the types contained within this signature
+    # are defined as adts in the given environment provided by the
+    def isValid(self, env):
+        valid = True
+
+        for opspec in self.opspecs:
+            if not opspec.isValid( env ):
+                valid = False
+                break
+
+        return valid
         
+
     def getAllOpNames(self):
         opNames = []
 
@@ -321,12 +335,35 @@ class SignatureStruct:
 
         return False
 
+    def toString(self):
+        text = "ADT: " + self.typename;
+
+        for op in self.opspecs:
+            text += "\n   " + op.toString()
+
+        return text
+
     
 class OperationSpecStruct:
     def __init__(self,operation,args,output):
         self.operation = operation
         self.args = args
         self.output = output 
+
+    # checks to see if all the types contained within
+    def isValid(self, adts):
+        valid = True
+
+        for arg in self.args:
+            if not( arg in baseTypes or arg in adts ):
+                valid = False
+                break
+        
+        if not( self.output in baseTypes or self.output in adts ):
+            valid = False
+
+        return valid
+            
 
     def toString(self):
         string = self.operation + ": "
@@ -345,11 +382,11 @@ class OperationSpecStruct:
         return string
 
 class EquationStruct:
-    def __init__(self,left,right):
+    def __init__( self, left, right ):
         self.left = left
         self.right = right
 
-    def getOpList(self):
+    def getOpList( self ):
         ops = []
 
         if isinstance( self.left, Expr ):
@@ -360,24 +397,24 @@ class EquationStruct:
 
         return ops 
 
-    def toString(self):
+    def toString( self ):
         text = ""
 
-        if isinstance(self.left, Expr):
+        if isinstance( self.left, Expr ):
             text += self.left.toSexpr()
         else:
             text += self.left
 
         text += " = "
     
-        if isinstance(self.right, Expr):
+        if isinstance( self.right, Expr ):
             text += self.right.toSexpr()
         else:
             text += self.right
 
         return text
 
-    def validRhs(self):
+    def validEqIds( self ):
         valid = True
         leftIds     = []
         rightVals    = []
@@ -407,28 +444,28 @@ class EquationStruct:
 
         return valid 
 
-    def validOps(self):
+    def validOps( self, sigs ):
         results = []
 
         for opList in self.getOpList():
             for op in opList:
                 sub_result = []
                 
-                if not( isPrimitive( op ) ):
-
-                    for sig in signatures:
-                        sub_result.append( sig.containsOperation(op))
+                if not( op in primitiveOps ):
+                    for sig in sigs:
+                        sub_result.append( sig.containsOperation(op) )
 
                     if not(True in sub_result):
                         results.append( False )
+                else:
+                    print "s " + op
                 
 
         return not( False in results )
 
 
-
-    def valid(self):
-        return self.validOps() and self.validRhs()
+    def isValid( self, sigs ):
+        return self.validOps( sigs ) and self.validEqIds()
 
 
 class Expr:
@@ -674,10 +711,9 @@ def retrieveEquations(tree):
         retrieveTermValues(eq.children[1], rightExpr, leftExprTypes)
         
         # Append the Equation to list, but remove the top level "term" op
-        equa = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
+        equation = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
 
-        ##if equa.valid():
-        listOfEquationStructs.append( equa )
+        listOfEquationStructs.append( equation )
 
         leftExpr = Expr("term")
         rightExpr = Expr("term")
@@ -751,7 +787,7 @@ def generateBaseExpressions(sig, baseCases):
                 
                 generatedExprs[spec.output].append(expr)
         # generate some random bases for primitives
-                if spec.output in ["int","boolean","string","char"] :
+                if spec.output in baseTypes :
                     for n in range(0, 3):
                         generatedExprs[spec.output].append(randomTypeGen(spec.output))
     return generatedExprs
@@ -860,12 +896,43 @@ def containDups(collection):
 
     return False
 
-def isPrimitive(string):
-    return re.match( r'[not|\+|-|\*|=|<|>]', string, re.U )
-
 def isBool(string):
     return re.match( r'[#t|#f]', string, re.U )
 
+def validateSignatures( signautes ):
+    valid = True
+    adts = getADTNames( signatures )
+
+    for sig in signatures:
+        if not( sig.isValid( adts ) ):
+            print adts
+            valid = False
+            print "Invalid Signature found: \n" + sig.toString()
+            print "Terminating program"
+            break
+
+    return valid
+
+def validateEquations( equations, signatures ):
+    valid = True
+
+    for eq in equations:
+        if not( eq.isValid( signatures ) ):
+            valid = False
+            print "Invalid Equation found: " + eq.toString()
+            print "Terminating program"
+            break
+
+    return valid
+
+
+def getADTNames( signatures ):
+    adts = []
+
+    for sig in signatures:
+        adts.append( sig.typename )
+
+    return adts
 
 #############################################
 #############################################
@@ -890,18 +957,30 @@ inp = ''
 for line in file:
     inp += line
  
-#lexer.input(inp)
-yacc.yacc(start='input')
+yacc.yacc( start='input' )
 
-yada = yacc.parse(inp)
+yada = yacc.parse( inp )
 
-signatures = retrieveSignatures(yada.children[0])
-equations = retrieveEquations(yada.children[1]);
+signatures = retrieveSignatures( yada.children[0] )
 
+# validates signatues are correct before doing anything else
+# if any formating is incorrect prints a message and then
+# exits the program
+if validateSignatures( signatures ):
+    equations = retrieveEquations( yada.children[1] )
+    
+    if( validateEquations( equations, signatures ) ):
+        ##### Tests #####
+        #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
+        #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+        #expr3 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("pop", [dict({'ArgType' : 'StackInt', 'Value', Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : 2})]})]})]}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
+        #print rewriteExpr(expr2, 0)
+        #print rewriteExpr(expr3)
 ##### Tests #####
 
-#for eq in equations:
-#    print eq.toString()
+        #for sig in signatures :
+        #    base = findBaseCase(sig)
+        #    printNumIterExpressions(20, signatures)
 
 #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
 #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
@@ -917,6 +996,3 @@ blackboxer.writeBlackBoxer(signatures, output, fileName, rExprs)
 
 file.close()
 output.close()
-
-
-

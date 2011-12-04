@@ -9,7 +9,7 @@ ADT: List
     rest        :  List        ->  List
     toSet       :  List        ->  Set
 
-ADT: SortedSet
+ADT: Set
 
     emptySet     :             ->  Set
     adjoin       :  Set * int  ->  Set
