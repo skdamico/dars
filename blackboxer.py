@@ -81,7 +81,7 @@ def removeDups(rExprs):
     for rExpr in rExprs:
         for item in seen:
             #if equalExpr(rExpr.expr, item.expr):
-            if equalExpr(rExpr, item.expr):
+            if equalExpr(rExpr.expr, item.expr):
                 isUnique = False
         
         if isUnique:        
