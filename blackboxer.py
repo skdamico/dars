@@ -1,13 +1,4 @@
-def findPrimitiveType(s):
-    bool = ['#t', '#T', '#f', '#F']
-    if (s in bool) :
-        return 'boolean'
-    elif(s.isdigit()) :
-        return 'int'
-    elif(s.isalpha() or s.isalnum()) :
-        return 'string'
-    else :
-        return 'char'
+import primitive
 
 class ReducedExpr:
     def __init__(self, expr, reduct, adtName):
@@ -73,26 +64,28 @@ def equalExpr(expr1, expr2):
                     return (expr1.args[i].get('Value') == expr2.args[i].get('Value'))
         else:
             return False
-    
-def removeDups(rExprs):
-    seen = set()
-    isUnique = True
 
+#removes all duplicates from a list of reducedExprs    
+def removeDups(rExprs):
+    seen = []
+    isUnique = True
     for rExpr in rExprs:
         for item in seen:
             #if equalExpr(rExpr.expr, item.expr):
-            if equalExpr(rExpr.expr, item.expr):
+            if equalExpr(rExpr.expr, item.expr) and rExpr.reduct == item.reduct:
                 isUnique = False
         
         if isUnique:        
-            seen.add(rExpr)
-            isUnique = True
+            seen.append(rExpr)
+        isUnique = True
                     
     return seen;
 
+#sortExpr - sorts a list of reducedExprs
 def sortExpr(rExprs):
     return sorted(rExprs, key=lambda reducedExpr: reducedExpr.adtName)
-    
+
+#writeBlackBoxer - creates the black box tester output    
 def writeBlackBoxer(signatures, output, fileName, reducedExprs):
     # remove duplicate exprs
     reducedExprs = removeDups(reducedExprs)
@@ -153,7 +146,7 @@ def writeBlackBoxer(signatures, output, fileName, reducedExprs):
             lastAdt = r.adtName
             testCount = 0
         output.write("\t(test \"" + r.adtName + unicode(testCount) +"\" (")
-        type = findPrimitiveType(r.reduct)
+        type = primitive.findPrimitiveType(r.reduct)
         if (type == 'int'):
             output.write("= ")
         else:

@@ -1,10 +1,10 @@
 import darslex
 import yacc
 import blackboxer
+import primitive
+import random
 import Queue
 import codecs, sys
-import random
-import string
 import re
 from collections import defaultdict
 
@@ -302,7 +302,7 @@ class Node:
         else :
             self.children = []
         self.value = value 
-
+        
 class SignatureStruct:
     def __init__(self,typename,opspecs):
         self.typename = typename
@@ -553,6 +553,8 @@ def retrieveSigValues(n, sigFlag, opsFlag, processed):
                 else :
                     processed.put(dict({'afterops' : n.value}))
 
+#retrieveEqNodes - takes in a tree of equations, goes through all the branches,
+#and for each equation, appends it to the list of equations
 def retrieveEqNodes(n, equations):
     if (n.type == 'empty') :
         pass
@@ -563,6 +565,8 @@ def retrieveEqNodes(n, equations):
         if (len(n.children) > 1) :
             retrieveEqNodes(n.children[1], equations)
 
+#getTypesFromExpr - gets all the argument types from an expression
+#and puts it into a dictionary
 def getTypesFromExpr(expr, types):
     for i in range(len(expr.args)):
         if (not isinstance(expr.args[i].get('Value'), unicode)):
@@ -570,24 +574,15 @@ def getTypesFromExpr(expr, types):
         else:
             types[expr.args[i]['Value']] = expr.args[i].get('ArgType')
 
-def findPrimitiveType(s):
-    bool = ['#t', '#T', '#f', '#F']
-    if (str(s) in bool) :
-        return 'boolean'
-    elif(s.isnumeric()) :
-        return 'int'
-    elif(s.isalpha() or str(s).isalnum()) :
-        return 'string'
-    else :
-        return 'char'
-            
+
+#retrieveTermValues - retrieves the terms for given equation and maps it to an argument type          
 def retrieveTermValues(term, expr, exprTypes = None):
     if(isinstance(term.type, str) and term.type == 'empty'):
         pass
     elif(term.value is None):
         if(term.type == 'term' or term.type == 'rhs'):
             if(isinstance(term.children[0], unicode)):
-                expr.args.append(dict({'ArgType' : findPrimitiveType(term.children[0]), 'Value' : term.children[0]}))            
+                expr.args.append(dict({'ArgType' : primitive.findUniPrimitiveType(term.children[0]), 'Value' : term.children[0]}))            
             elif (term.children[0].type == 'operation'):
                 newarg = createOpArg(term.children[0])
                 expr.args.append(newarg)
@@ -599,7 +594,7 @@ def retrieveTermValues(term, expr, exprTypes = None):
                     if (term.children[0].value in exprTypes):
                         argType = exprTypes[term.children[0].value]
                     else :
-                        argType = findPrimitiveType(term.children[0].value)
+                        argType = primitive.findUniPrimitiveType(term.children[0].value)
                 expr.args.append(dict({'ArgType' : argType, 'Value' : term.children[0].value}))
             elif(term.children[0].type == 'primitive'):
                 newarg = createOpArg(term.children[0])
@@ -610,21 +605,16 @@ def retrieveTermValues(term, expr, exprTypes = None):
             if(len(term.children) > 1):
                 retrieveTermValues(term.children[1], expr)
 
-             
+#createOpArg - returns the dictionary mapping of an argument and its type              
 def createOpArg(expr):
     if(expr.type == 'operation'):
         return createOpArg(expr.children[0])
     elif(expr.type == 'identifier'):
         return dict({'ArgType' : findOutputType(expr.value), 'Value' : Expr(expr.value)})
     elif(expr.type == 'primitive'):
-        return dict({'ArgType' : findPrimOutputType(expr.value), 'Value' : Expr(expr.value)})
+        return dict({'ArgType' : primitive.findPrimOutputType(expr.value), 'Value' : Expr(expr.value)})
 
-def findPrimOutputType(op):
-    intTypes = ['+', '-', '*']
-    if (op in intTypes):
-        return 'int'
-    else: return 'boolean'
-
+#findOutputType - returns the operation's output type
 def findOutputType(op):
     global signatures
     for sig in signatures:
@@ -632,6 +622,7 @@ def findOutputType(op):
             if(opspec.operation == op):
                 return opspec.output
 
+#findArgType - returns the type of an operation's argument
 def findArgType(op, argIndex):
     global signatures
     for sig in signatures:
@@ -639,7 +630,7 @@ def findArgType(op, argIndex):
             if(opspec.operation == op):
                 return opspec.args[argIndex]      
 
-#uses the dictionaries we made in order to create the
+#determineSignatures - uses the dictionaries we made in order to create the
 #signature and operation structures 
 def determineSignatures(processed):
     typename = ''
@@ -688,7 +679,7 @@ def determineSignatures(processed):
     
     return listOfSignatures
 
-#Retrieves signatures for an AST
+#retrieveSignatures - Retrieves signatures for an AST
 def retrieveSignatures(tree):
     processed = Queue.Queue()
     sigFlag = False
@@ -696,6 +687,7 @@ def retrieveSignatures(tree):
     retrieveSigValues(tree, sigFlag, opsFlag, processed)
     return determineSignatures(processed)
 
+#retrieveEquations - Retrieves equations for an AST
 def retrieveEquations(tree):
     equations = []
     retrieveEqNodes(tree, equations)
@@ -720,6 +712,7 @@ def retrieveEquations(tree):
 
     return listOfEquationStructs
 
+#equalExprToTerm - Checks to see if an expression is equal to a term
 def equalExprToTerm(expr, term):
     if (expr.op != term.op) :
         return False
@@ -735,6 +728,7 @@ def equalExprToTerm(expr, term):
         else:
             return False
 
+#equalExpr - Checks to see if two expressions are equal to one another
 def equalExpr(expr1, expr2):
     if (expr1.op != expr2.op) :
         return False
@@ -750,7 +744,7 @@ def equalExpr(expr1, expr2):
         else:
             return False
                
-#largely assumes the method with no args and returns the typename is the base
+#findBaseCase - finds base case of an ADT signature
 def findBaseCases(sigs):
     baseCases = {}
     for signature in sigs:
@@ -761,18 +755,7 @@ def findBaseCases(sigs):
     return baseCases
     #sys.exit('No base case found for ' + sigStruct.typename)
 
-def randomTypeGen(type) :
-    if type == 'int' :
-        return str(random.randrange(0,99999999999))
-    elif type =='boolean' :
-        bool = ['#t', '#T', '#f', '#F']
-        return random.choice(bool)
-    elif type == 'string' :
-        return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,20)))
-    elif type == 'char' :
-        randomString = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(random.randrange(0,10)))
-        return repr(unicode(randomString, "utf-8" ))
-    
+#genrateBaseExpressions - generates the base expressions    
 def generateBaseExpressions(sig, baseCases):
     generatedExprs = defaultdict(list)
     for signature in sig:
@@ -783,15 +766,16 @@ def generateBaseExpressions(sig, baseCases):
                 if (arg in baseCases) :
                     expr.args.append(dict({'ArgType' : arg, 'Value' : baseCases[arg]}))
                 else: 
-                    expr.args.append(dict({'ArgType' : arg, 'Value' : str(randomTypeGen(arg))}))
+                    expr.args.append(dict({'ArgType' : arg, 'Value' : str(primitive.randomTypeGen(arg))}))
                 
                 generatedExprs[spec.output].append(expr)
         # generate some random bases for primitives
                 if spec.output in baseTypes :
                     for n in range(0, 3):
-                        generatedExprs[spec.output].append(randomTypeGen(spec.output))
+                        generatedExprs[spec.output].append(primitive.randomTypeGen(spec.output))
     return generatedExprs
-    
+
+#generateNonBaseExpressions - generates non-base expressions    
 def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
     for signature in sigs:
         for spec in signature.opspecs:
@@ -805,16 +789,12 @@ def generateNonBaseExpressions(exprs, reducedExprs, sigs, baseCases):
                         reducedExprs.append(ReducedExpr(newExpr, reduction, signature.typename))
                 exprs[spec.output].append(newExpr)
     
-
-
-
 def getVariableMapping(expr, term, vmap):
     if(isinstance(term, unicode)):
         vmap[term] = expr
     elif(isinstance(expr, Expr) and isinstance(term, Expr)):
         for i in range(len(expr.args)):
             getVariableMapping(expr.args[i].get('Value'), term.args[i].get('Value'), vmap)
-
 
 def getSubstitutedRewrite(term, vmap):
     if(isinstance(term, unicode)):
@@ -864,8 +844,6 @@ def rewriteSingleExpr(expr):
         if equalExprToTerm(expr, eq.left):
             r = getRewrite(expr, eq.left, eq.right)
             return r
-
-
 
 def genNumIterExpressions(num, sigs):
     reducedExprs = []
@@ -969,7 +947,7 @@ signatures = retrieveSignatures( yada.children[0] )
 if validateSignatures( signatures ):
     equations = retrieveEquations( yada.children[1] )
     
-    if( validateEquations( equations, signatures ) ):
+if( validateEquations( equations, signatures ) ):
         ##### Tests #####
         #expr1 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : "empty"}), dict({'ArgType' : "int" ,'Value' : 2})])})])
         #expr2 = Expr('top', [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}),dict({'ArgType' : 'int', 'Value' : Expr("top", [dict({'ArgType' : 'StackInt', 'Value' : Expr("push", [dict({'ArgType' : 'StackInt', 'Value' : Expr("empty", [])}), dict({'ArgType' : 'int', 'Value' : 2})])})])})])})])
@@ -990,9 +968,9 @@ if validateSignatures( signatures ):
 
 #for sig in signatures :
     #base = findBaseCase(sig)
-rExprs = genNumIterExpressions(900, signatures)
+    rExprs = genNumIterExpressions(400, signatures)
 
-blackboxer.writeBlackBoxer(signatures, output, fileName, rExprs)
+    blackboxer.writeBlackBoxer(signatures, output, fileName, rExprs)
 
 file.close()
 output.close()
