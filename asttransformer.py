@@ -94,9 +94,9 @@ def createOpArg(expr):
     if(expr.type == 'operation'):
         return createOpArg(expr.children[0])
     elif(expr.type == 'identifier'):
-        return dict({'ArgType' : findOutputType(expr.value), 'Value' : Expr(expr.value)})
+        return dict({'ArgType' : findOutputType(expr.value), 'Value' : c.Expr(expr.value)})
     elif(expr.type == 'primitive'):
-        return dict({'ArgType' : primitive.findPrimOutputType(expr.value), 'Value' : Expr(expr.value)})
+        return dict({'ArgType' : primitive.findPrimOutputType(expr.value), 'Value' : c.Expr(expr.value)})
 
 #findOutputType - returns the operation's output type
 def findOutputType(op):
@@ -173,26 +173,26 @@ def retrieveSignatures(tree):
 
 #retrieveEquations - Retrieves equations for an AST
 def retrieveEquations(tree):
-    equations = []
-    retrieveEqNodes(tree, equations)
+    #equations = []
+    retrieveEqNodes(tree, g.equations)
 
-    leftExpr = Expr("term")
-    rightExpr = Expr("term")
+    leftExpr = c.Expr("term")
+    rightExpr = c.Expr("term")
 
     listOfEquationStructs = []
-    for eq in equations:
+    for eq in g.equations:
         retrieveTermValues(eq.children[0], leftExpr)
         leftExprTypes = {}
         getTypesFromExpr(leftExpr, leftExprTypes)
         retrieveTermValues(eq.children[1], rightExpr, leftExprTypes)
         
         # Append the Equation to list, but remove the top level "term" op
-        equation = EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
+        g.equation = c.EquationStruct( leftExpr.args[0].get('Value'), rightExpr.args[0].get('Value') )
 
-        listOfEquationStructs.append( equation )
+        listOfEquationStructs.append( g.equation )
 
-        leftExpr = Expr("term")
-        rightExpr = Expr("term")
+        leftExpr = c.Expr("term")
+        rightExpr = c.Expr("term")
 
     return listOfEquationStructs
 
