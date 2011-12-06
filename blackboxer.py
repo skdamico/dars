@@ -1,69 +1,5 @@
 import primitive
-
-class ReducedExpr:
-    def __init__(self, expr, reduct, adtName):
-        self.expr = expr
-        self.reduct = reduct
-        self.adtName = adtName
-
-class Expr:
-    def __init__(self,op,args=None):
-        self.op = op
-        if args:
-            self.args = args
-        else :
-            self.args = []
-    
-    # class method that turns Expr objects 
-    # into Scheme expressions :-) 
-    def toSexpr(self):
-        sexpr = "(" +  str(self.op)
-
-        for arg in self.args:
-            if (isinstance(arg['Value'], Expr)): 
-                sexpr += " " + arg['Value'].toSexpr()
-            else: 
-                sexpr += " " + str(arg['Value']) 
-
-        sexpr += ")"     
-        return sexpr
-
-    # returns all operations used in the Expr
-    def findAllOps(self):
-        ops = [self.op]
-
-        for arg in self.args:
-            if ( isinstance( arg['Value'], Expr )):
-                ops += arg['Value'].findAllOps()
-
-        return ops
-
-    # returns all values within the Expr
-    def findAllValues(self):
-        vals = []
-
-        for arg in self.args:
-            if( isinstance( arg['Value'], Expr ) ):
-                vals += arg['Value'].findAllValues()
-            else:
-                vals.append( arg['Value'] )
-
-        return vals
-    
-def equalExpr(expr1, expr2):
-    if (expr1.op != expr2.op) :
-        return False
-    else :
-        if (len(expr1.args) == 0 and len(expr2.args) == 0):
-            return True
-        elif (len(expr1.args) == len(expr2.args)):
-            for i in range(len(expr1.args)) :
-                if (isinstance(expr1.args[i].get('Value'), Expr) and isinstance(expr2.args[i].get('Value'), Expr)):
-                    return equalExpr(expr1.args[i].get('Value'),expr2.args[i].get('Value'))
-                else :
-                    return (expr1.args[i].get('Value') == expr2.args[i].get('Value'))
-        else:
-            return False
+import ExprGen as gen
 
 #removes all duplicates from a list of reducedExprs    
 def removeDups(rExprs):
@@ -72,7 +8,7 @@ def removeDups(rExprs):
     for rExpr in rExprs:
         for item in seen:
             #if equalExpr(rExpr.expr, item.expr):
-            if equalExpr(rExpr.expr, item.expr) and rExpr.reduct == item.reduct:
+            if gen.equalExpr(rExpr.expr, item.expr) and rExpr.reduct == item.reduct:
                 isUnique = False
         
         if isUnique:        
@@ -109,8 +45,8 @@ def writeBlackBoxer(signatures, output, fileName, reducedExprs):
         output.write('\t(testing ' + signatures[0].typename + ' ))\n')
     else:
         for sig in signatures[:-1]:
-            output.write('        (testing ' + sig.typename + ')\n')
-        output.write('\t(testing ' + signatures[-1].typename + '))\n\n')
+            output.write('\t\t(testing ' + sig.typename + ')\n')
+        output.write('\t\t(testing ' + signatures[-1].typename + '))\n\n')
     output.write(''';;; Counters for the summary report when testing is complete.
     
     (define tests-run 0)
