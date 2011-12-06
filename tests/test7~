@@ -1,0 +1,132 @@
+Signatures:
+
+ADT: Bool
+
+    true      :                    -> Bool
+    false     :                    -> Bool
+    ifBool    : Bool * Bool * Bool -> Bool
+    asBoolean : Bool               -> boolean
+
+ADT: Nat
+
+    zero      :                   -> Nat
+    succ      :  Nat              -> Nat
+    pred      :  Nat              -> Nat
+    plus      :  Nat * Nat        -> Nat
+    times     :  Nat * Nat        -> Nat
+    power     :  Nat * Nat        -> Nat
+    minus     :  Nat * Nat        -> Nat
+    eqNatBool :  Nat * Nat        -> Bool
+    asInt     :  Nat              -> int
+
+ADT: List
+
+    emptyList   :              ->  List
+    cons        :  Nat * List  ->  List
+    isEmpty     :  List        ->  boolean
+    isEmptyBool :  List        ->  Bool
+    first       :  List        ->  Nat
+    rest        :  List        ->  List
+    toSet       :  List        ->  Set
+
+ADT: Set
+
+    emptySet      :                         ->  Set
+    adjoin        :  Set * Nat              ->  Set
+    singleton     :  Nat                    ->  Set
+    isEmpty       :  Set                    ->  boolean
+    isEmptyBool   :  Set                    ->  Bool
+    isElementOf   :  Nat * Set              ->  boolean
+    isEltOfBool   :  Nat * Set              ->  Bool
+    isEltHelp     :  Nat * Nat * Nat * Set  ->  boolean
+    choose        :  Set                    ->  Nat
+    others        :  Set                    ->  Set
+    union         :  Set * Set              ->  Set
+    intersection  :  Set * Set              ->  Set
+    ifBoolSets    :  Bool * Set * Set       ->  Set
+    toList        :  Set                    ->  List
+
+Equations:
+
+    (ifBool (true) b1 b2)  =  b1
+    (ifBool (false) b1 b2)  =  b2
+
+    (asBoolean (true))  =  #t
+    (asBoolean (false))  =  #f
+
+
+    (pred (zero))  =  (zero)
+    (pred (succ m))  =  m
+
+    (plus m (zero))  =  m
+    (plus m (succ n))  =  (succ (plus m n))
+
+    (times m (zero))  =  (zero)
+    (times m (succ n))  =  (plus m (times m n))
+
+    (power m (zero))  =  (succ (zero))
+    (power m (succ n))  =  (times m (power m n))
+
+    (minus m (zero))  =  m
+    (minus m (succ n))  =  (pred (minus m n))
+
+    (eqNatBool (zero) (zero))  =  (true)
+    (eqNatBool (zero) (succ m))  =  (false)
+    (eqNatBool (succ m) (zero))  =  (false)
+    (eqNatBool (succ m) (succ n))  =  (eqNat m n)
+
+    (asInt (zero))  =  0
+    (asInt (succ m))  =  (+ 1 (asInt m))
+
+
+    (isEmpty x)  =  (asBoolean (isEmptyBool x))
+
+    (isEmptyBool (emptyList))  =  (true)
+    (isEmptyBool (cons m x))  =  (false)
+
+    (first (emptyList))  =  (zero)
+    (first (cons m x))  =  m
+
+    (rest (emptyList))  =  (emptyList)
+    (rest (cons m x))  =  x
+
+    (toSet (emptyList))  =  (emptySet)
+    (toSet (cons m x))  =  (union (singleton m) (toSet x))
+
+
+    (singleton k)  =  (adjoin (emptySet) k)
+
+    (isEmpty s)  =  (asBoolean (isEmptyBool s))
+
+    (isEmptyBool (emptySet))  =  (true)
+    (isEmptyBool (adjoin s k))  =  (false)
+
+    (isElementOf k s)  =  (asBoolean (isEltOfBool k s))
+
+    (isEltOfBool k (emptySet))  =  (false)
+    (isEltOfBool k (adjoin s k2))
+        =  (ifBool (eqNatBool k k2) (true) (isEltOfBool k s))
+
+    (choose (emptySet))  =  (zero)
+    (choose (adjoin s k))  =  k
+
+    (others (emptySet))  =  (emptySet)
+    (others (adjoin s k))  =  s
+
+    (union (emptySet) s2)  =  s2
+    (union (adjoin s1 k) s2)
+        =  (ifBoolSets (isEltOfBool k s2)
+                       (union s1 s2)
+                       (adjoin (union s1 s2) k))
+
+    (intersection (emptySet) s2)  =  (emptySet)
+    (intersection (adjoin s1 k) s2)
+        =  (ifBoolSets (isEltOfBool k s2)
+                       (adjoin (intersection s1 s2) k)
+                       (intersection s1 s2))
+
+    (ifBoolSets (true) s1 s2)  =  s1
+    (ifBoolSets (false) s1 s2)  =  s2
+
+    (toList (emptySet))  =  (emptyList)
+    (toList (adjoin s k))  =  (cons k (toList s))

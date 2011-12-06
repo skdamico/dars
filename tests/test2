@@ -1,0 +1,23 @@
+Signatures:
+
+ADT: List
+
+    emptyList   :              ->  List
+    cons        :  int * List  ->  List
+    isEmpty     :  List        ->  boolean
+    first       :  List        ->  int
+    rest        :  List        ->  List
+    toSet       :  List        ->  Set
+
+ADT: Set
+
+    emptySet     :             ->  Set
+    adjoin       :  Set * int  ->  Set
+    isEmpty      :  Set        ->  boolean
+    choose       :  Set        ->  int
+    others       :  Set        ->  Set
+    union        :  Set * Set  ->  Set
+    intersection :  Set * Set  ->  Set
+    toList       :  Set        ->  List
+
+Equations:

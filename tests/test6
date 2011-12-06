@@ -1,0 +1,48 @@
+Signatures:
+
+ADT: Nat
+
+    zero  :            -> Nat
+    succ  :  Nat       -> Nat
+    pred  :  Nat       -> Nat
+    asInt :  Nat       -> int
+    eqNat :  Nat * Nat -> boolean
+    plus  :  Nat * Nat -> Nat
+    times :  Nat * Nat -> Nat
+    power :  Nat * Nat -> Nat
+    minus :  Nat * Nat -> Nat
+
+ADT: Factorial
+
+    factorial: Nat -> Nat
+
+Equations:
+
+    (pred (zero))  =  (zero)
+    (pred (zero))  =  (power (succ (succ (zero))) (succ (succ (zero))))
+    (pred (succ m))  =  m
+
+    (asInt (zero))  =  0
+    (asInt (succ m))  =  (+ 1 (asInt m))
+
+    (eqNat (zero) (zero))  =  #t
+    (eqNat (zero) (succ m))  =  #f
+    (eqNat (succ m) (zero))  =  #f
+    (eqNat (succ m) (succ n))  =  (eqNat m n)
+
+    (plus m (zero))  =  m
+    (plus m (succ n))  =  (succ (plus m n))
+
+    (times m (zero))  =  (zero)
+    (times m (succ n))  =  (plus m (times m n))
+
+    (power (zero) (zero))  =  (succ (zero))
+    (power (zero) (zero))  =  (zero)
+    (power (succ m) (zero))  =  (succ (zero))
+    (power m (succ n))  =  (times m (power m n))
+
+    (minus m (zero))  =  m
+    (minus m (succ n))  =  (pred (minus m n))
+
+    (factorial (zero))  =  (succ (zero))
+    (factorial (succ n))  =  (times (succ n) (factorial n))

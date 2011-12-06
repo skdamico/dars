@@ -1,0 +1,6 @@
+*.pyc
+.*.swp
+output
+output_file
+parser.out
+parsetab.py

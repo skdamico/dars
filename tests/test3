@@ -1,0 +1,15 @@
+Signatures:
+
+ADT: StackInt
+
+    empty   :                  ->  StackInt
+    push    :  StackInt * int  ->  StackInt
+    isEmpty :  StackInt        ->  boolean
+    top     :  StackInt        ->  int
+    pop     :  StackInt        ->  StackInt
+
+Equations:
+
+    (top (push s k)) = k
+
+    (pop (push s k)) = s
